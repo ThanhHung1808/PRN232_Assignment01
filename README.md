@@ -53,6 +53,6 @@ dotnet run --urls "http://localhost:5001;https://localhost:7001"
 
 | Role | Email | Password | Access / Privileges |
 | :--- | :--- | :--- | :--- |
-| **Admin** | `admin@FUNewsManagementSystem.org` | `@@abc123@@` | Account Management, Article Statistics & Reports |
-| **Staff** | `IsabellaDavid@FUNewsManagement.org` | `@1` | Category Management, News Article CRUD, Profile, My Articles |
+| **Admin** | `admin@FUNewsManagementSystem.org` | `admin` | Account Management, Article Statistics & Reports |
+| **Staff** | `IsabellaDavid@FUNewsManagement.org` | `staff1` | Category Management, News Article CRUD, Profile, My Articles |
 | **Public** | *(No login required)* | - | View active articles, search, filter by category |
