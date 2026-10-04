@@ -1,0 +1,53 @@
+@page
+@model FUNewsManagementClient.Pages.Staff.ProfileModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+        <div class="card card-modern p-4">
+            <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; font-size: 1.5rem;">
+                    <i class="bi bi-person"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold text-dark mb-0">Staff Profile</h4>
+                    <span class="badge badge-role-staff mt-1"><i class="bi bi-shield-check me-1"></i>Staff Member</span>
+                </div>
+            </div>
+
+            <form method="post">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Account ID</label>
+                    <input class="form-control bg-light" value="#@Model.AccountDetails?.AccountId" disabled />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Full Name <span class="text-danger">*</span></label>
+                    <input asp-for="ProfileInput.AccountName" class="form-control" required />
+                    <span asp-validation-for="ProfileInput.AccountName" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Email Address <span class="text-danger">*</span></label>
+                    <input asp-for="ProfileInput.AccountEmail" type="email" class="form-control" required />
+                    <span asp-validation-for="ProfileInput.AccountEmail" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold small">New Password (leave blank if keeping current password)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-key text-muted"></i></span>
+                        <input asp-for="ProfileInput.NewPassword" type="password" class="form-control border-start-0" placeholder="••••••••" />
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-page="/Staff/Articles/Index" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

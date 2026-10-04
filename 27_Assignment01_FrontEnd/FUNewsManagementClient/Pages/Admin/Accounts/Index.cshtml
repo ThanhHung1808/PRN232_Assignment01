@@ -1,0 +1,274 @@
+@page
+@model FUNewsManagementClient.Pages.Admin.Accounts.IndexModel
+@{
+    ViewData["Title"] = "Account Management";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">Account Management</h2>
+        <p class="text-muted mb-0">Manage system staff and lecturer accounts</p>
+    </div>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+        <i class="bi bi-person-plus-fill me-1"></i> Add New Account
+    </button>
+</div>
+
+<!-- Search Bar -->
+<div class="card card-modern p-3 mb-4">
+    <form method="get" class="row g-2 align-items-center">
+        <div class="col-md-10">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" name="Keyword" class="form-control border-start-0" placeholder="Search by name or email..." value="@Model.Keyword" />
+            </div>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-1"></i> Search</button>
+            @if (!string.IsNullOrWhiteSpace(Model.Keyword))
+            {
+                <a asp-page="./Index" class="btn btn-outline-secondary" title="Reset"><i class="bi bi-x-lg"></i></a>
+            }
+        </div>
+    </form>
+</div>
+
+<!-- Accounts Table -->
+<div class="card card-modern">
+    <div class="table-responsive">
+        <table class="table table-custom mb-0">
+            <thead>
+                <tr>
+                    <th>Account ID</th>
+                    <th>Account Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Created Articles</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Accounts == null || !Model.Accounts.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">No accounts found.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var acc in Model.Accounts)
+                    {
+                        <tr>
+                            <td class="fw-semibold">#@acc.AccountId</td>
+                            <td class="fw-bold text-dark">@acc.AccountName</td>
+                            <td><span class="text-muted">@acc.AccountEmail</span></td>
+                            <td>
+                                @if (acc.AccountRole == 1)
+                                {
+                                    <span class="badge badge-role-staff"><i class="bi bi-person me-1"></i>Staff</span>
+                                }
+                                else if (acc.AccountRole == 2)
+                                {
+                                    <span class="badge bg-secondary text-white rounded-pill px-3 py-1"><i class="bi bi-book me-1"></i>Lecturer</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-dark">Unknown</span>
+                                }
+                            </td>
+                            <td>
+                                @if (acc.CreatedArticlesCount > 0)
+                                {
+                                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1">
+                                        <i class="bi bi-file-text me-1"></i>@acc.CreatedArticlesCount articles
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">0 articles</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-outline-primary btn-sm me-1"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editModal"
+                                        data-id="@acc.AccountId"
+                                        data-name="@acc.AccountName"
+                                        data-email="@acc.AccountEmail"
+                                        data-role="@acc.AccountRole">
+                                    <i class="bi bi-pencil me-1"></i> Edit
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-id="@acc.AccountId"
+                                        data-name="@acc.AccountName"
+                                        data-count="@acc.CreatedArticlesCount">
+                                    <i class="bi bi-trash me-1"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create Modal -->
+<div class="modal fade" id="createModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Create">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-person-plus text-primary me-2"></i>Create New Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Account ID <span class="text-danger">*</span></label>
+                        <input asp-for="AccountInput.AccountId" type="number" class="form-control" placeholder="Unique numeric ID (e.g. 10)" required />
+                        <span asp-validation-for="AccountInput.AccountId" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Account Name <span class="text-danger">*</span></label>
+                        <input asp-for="AccountInput.AccountName" class="form-control" placeholder="Full name" required />
+                        <span asp-validation-for="AccountInput.AccountName" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Account Email <span class="text-danger">*</span></label>
+                        <input asp-for="AccountInput.AccountEmail" type="email" class="form-control" placeholder="user@FUNewsManagement.org" required />
+                        <span asp-validation-for="AccountInput.AccountEmail" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Account Role <span class="text-danger">*</span></label>
+                        <select asp-for="AccountInput.AccountRole" class="form-select" required>
+                            <option value="1">Staff (Role = 1)</option>
+                            <option value="2">Lecturer (Role = 2)</option>
+                        </select>
+                        <span asp-validation-for="AccountInput.AccountRole" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Account Password <span class="text-danger">*</span></label>
+                        <input asp-for="AccountInput.AccountPassword" type="password" class="form-control" placeholder="Password" required />
+                        <span asp-validation-for="AccountInput.AccountPassword" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Save Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Update">
+                <input type="hidden" id="editAccountId" name="AccountInput.AccountId" />
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square text-primary me-2"></i>Edit Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Account ID</label>
+                        <input id="editAccountIdDisplay" class="form-control bg-light" disabled />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Account Name <span class="text-danger">*</span></label>
+                        <input id="editAccountName" name="AccountInput.AccountName" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Account Email <span class="text-danger">*</span></label>
+                        <input id="editAccountEmail" name="AccountInput.AccountEmail" type="email" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Account Role <span class="text-danger">*</span></label>
+                        <select id="editAccountRole" name="AccountInput.AccountRole" class="form-select" required>
+                            <option value="1">Staff (Role = 1)</option>
+                            <option value="2">Lecturer (Role = 2)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">New Password (leave blank if keeping current)</label>
+                        <input name="AccountInput.AccountPassword" type="password" class="form-control" placeholder="••••••••" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i> Update Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Delete">
+                <input type="hidden" id="deleteAccountId" name="accountId" />
+                <div class="modal-header bg-danger-subtle">
+                    <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="mb-2">Are you sure you want to permanently delete the account: <strong id="deleteAccountName" class="text-danger"></strong>?</p>
+                    <div id="deleteWarning" class="alert alert-warning small mb-0" style="display: none;">
+                        <i class="bi bi-info-circle me-1"></i> Note: If this account has created news articles, the system will prevent deletion.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i> Confirm Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const editModal = document.getElementById('editModal');
+        if (editModal) {
+            editModal.addEventListener('show.bs.modal', function (event) {
+                const btn = event.relatedTarget;
+                const id = btn.getAttribute('data-id');
+                const name = btn.getAttribute('data-name');
+                const email = btn.getAttribute('data-email');
+                const role = btn.getAttribute('data-role');
+
+                document.getElementById('editAccountId').value = id;
+                document.getElementById('editAccountIdDisplay').value = '#' + id;
+                document.getElementById('editAccountName').value = name || '';
+                document.getElementById('editAccountEmail').value = email || '';
+                document.getElementById('editAccountRole').value = role || '1';
+            });
+        }
+
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                const btn = event.relatedTarget;
+                const id = btn.getAttribute('data-id');
+                const name = btn.getAttribute('data-name');
+                const count = parseInt(btn.getAttribute('data-count') || '0');
+
+                document.getElementById('deleteAccountId').value = id;
+                document.getElementById('deleteAccountName').textContent = name + ' (#' + id + ')';
+                const warning = document.getElementById('deleteWarning');
+                if (count > 0) {
+                    warning.style.display = 'block';
+                    warning.innerHTML = `<i class="bi bi-exclamation-octagon me-1"></i> Warning: This account has created <strong>${count}</strong> article(s). Deletion will be rejected by the server!`;
+                } else {
+                    warning.style.display = 'none';
+                }
+            });
+        }
+    </script>
+}

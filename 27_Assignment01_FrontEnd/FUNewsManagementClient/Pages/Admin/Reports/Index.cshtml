@@ -1,0 +1,142 @@
+@page
+@model FUNewsManagementClient.Pages.Admin.Reports.IndexModel
+@{
+    ViewData["Title"] = "News Article Statistics Report";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">News Article Statistics Report</h2>
+        <p class="text-muted mb-0">Generate statistics on news articles created within a specified date period (sorted in descending order)</p>
+    </div>
+</div>
+
+<!-- Filter Card -->
+<div class="card card-modern p-4 mb-4">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label fw-semibold small text-muted"><i class="bi bi-calendar-event me-1"></i> Start Date</label>
+            <input type="date" name="StartDate" class="form-control" value="@Model.StartDate.ToString("yyyy-MM-dd")" required />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-semibold small text-muted"><i class="bi bi-calendar-check me-1"></i> End Date</label>
+            <input type="date" name="EndDate" class="form-control" value="@Model.EndDate.ToString("yyyy-MM-dd")" required />
+        </div>
+        <div class="col-md-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-bar-chart-fill me-1"></i> Generate Report
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Report Summary Cards -->
+@if (Model.ReportData != null)
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card card-modern p-3 border-start border-primary border-4">
+                <div class="text-muted small fw-semibold">REPORT PERIOD</div>
+                <div class="fs-6 fw-bold text-dark mt-1">
+                    @Model.ReportData.StartDate.ToString("dd/MM/yyyy") &mdash; @Model.ReportData.EndDate.ToString("dd/MM/yyyy")
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-modern p-3 border-start border-success border-4">
+                <div class="text-muted small fw-semibold">TOTAL ARTICLES PUBLISHED</div>
+                <div class="fs-3 fw-bold text-success mt-1">
+                    @Model.ReportData.TotalArticles
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-modern p-3 border-start border-info border-4">
+                <div class="text-muted small fw-semibold">SORT ORDER</div>
+                <div class="fs-6 fw-bold text-dark mt-1">
+                    <i class="bi bi-sort-numeric-down-alt me-1 text-primary"></i> CreatedDate Descending
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Articles Table -->
+    <div class="card card-modern">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold text-dark mb-0">Detailed Article Records</h5>
+            <span class="badge bg-light text-primary border border-primary-subtle px-3 py-2">
+                @Model.ReportData.Articles.Count records
+            </span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Created Date</th>
+                        <th>Headline & Title</th>
+                        <th>Category</th>
+                        <th>Author (Created By)</th>
+                        <th>Status</th>
+                        <th>Tags</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.ReportData.Articles.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-folder-x fs-1 d-block mb-2"></i>
+                                No articles found within the selected period.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        int index = 1;
+                        @foreach (var a in Model.ReportData.Articles)
+                        {
+                            <tr>
+                                <td>@(index++)</td>
+                                <td class="fw-semibold text-primary">
+                                    <i class="bi bi-calendar3 me-1"></i>@(a.CreatedDate?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">@a.Headline</div>
+                                    @if (!string.IsNullOrWhiteSpace(a.NewsTitle))
+                                    {
+                                        <small class="text-muted">@a.NewsTitle</small>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        @(a.CategoryName ?? "N/A")
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="small fw-semibold text-dark"><i class="bi bi-person me-1"></i>@(a.CreatedByName ?? "N/A")</div>
+                                </td>
+                                <td>
+                                    @if (a.NewsStatus == true)
+                                    {
+                                        <span class="badge badge-active"><i class="bi bi-check-circle me-1"></i>Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-inactive"><i class="bi bi-dash-circle me-1"></i>Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    @foreach (var tag in a.Tags)
+                                    {
+                                        <span class="badge-tag">#@tag.TagName</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

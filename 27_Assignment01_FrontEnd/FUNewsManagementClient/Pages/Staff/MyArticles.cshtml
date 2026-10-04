@@ -1,0 +1,91 @@
+@page
+@model FUNewsManagementClient.Pages.Staff.MyArticlesModel
+@{
+    ViewData["Title"] = "My News Article History";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">My News History</h2>
+        <p class="text-muted mb-0">View all news articles authored by you</p>
+    </div>
+    <a asp-page="/Staff/Articles/Index" class="btn btn-outline-primary">
+        <i class="bi bi-arrow-left me-1"></i> Back to All Articles
+    </a>
+</div>
+
+<div class="card card-modern">
+    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold text-dark mb-0">Authored Articles</h5>
+        <span class="badge bg-primary px-3 py-2 rounded-pill">@Model.MyArticles.Count Articles</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-custom mb-0">
+            <thead>
+                <tr>
+                    <th>Article ID</th>
+                    <th>Created Date</th>
+                    <th>Headline</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Tags</th>
+                    <th>Last Modified</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.MyArticles == null || !Model.MyArticles.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-clock-history fs-1 d-block mb-2"></i>
+                            You have not authored any news articles yet.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var art in Model.MyArticles)
+                    {
+                        <tr>
+                            <td class="fw-semibold">#@art.NewsArticleId</td>
+                            <td class="small text-primary fw-semibold">
+                                <i class="bi bi-calendar3 me-1"></i>@(art.CreatedDate?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark">@art.Headline</div>
+                                @if (!string.IsNullOrWhiteSpace(art.NewsTitle) && art.NewsTitle != art.Headline)
+                                {
+                                    <small class="text-muted">@art.NewsTitle</small>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    @(art.CategoryName ?? "N/A")
+                                </span>
+                            </td>
+                            <td>
+                                @if (art.NewsStatus == true)
+                                {
+                                    <span class="badge badge-active"><i class="bi bi-check-circle me-1"></i>Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-inactive"><i class="bi bi-dash-circle me-1"></i>Inactive</span>
+                                }
+                            </td>
+                            <td>
+                                @foreach (var t in art.Tags)
+                                {
+                                    <span class="badge-tag">#@t.TagName</span>
+                                }
+                            </td>
+                            <td class="small text-muted">
+                                @(art.ModifiedDate?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

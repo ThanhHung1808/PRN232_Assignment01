@@ -1,0 +1,352 @@
+@page
+@model FUNewsManagementClient.Pages.Staff.Articles.IndexModel
+@{
+    ViewData["Title"] = "News Article Management";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">News Article Management</h2>
+        <p class="text-muted mb-0">Publish, modify, categorize, and tag university news stories</p>
+    </div>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createArticleModal">
+        <i class="bi bi-file-earmark-plus-fill me-1"></i> Create News Article
+    </button>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="card card-modern p-3 mb-4">
+    <form method="get" class="row g-3 align-items-center">
+        <div class="col-md-5">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" name="Keyword" class="form-control border-start-0" placeholder="Search by title, headline, content..." value="@Model.Keyword" />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select name="CategoryId" class="form-select">
+                <option value="">-- All Categories --</option>
+                @foreach (var c in Model.Categories)
+                {
+                    <option value="@c.CategoryId" selected="@(Model.CategoryId == c.CategoryId)">@c.CategoryName</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="Status" class="form-select">
+                <option value="">-- All Status --</option>
+                <option value="true" selected="@(Model.Status == true)">Active Only</option>
+                <option value="false" selected="@(Model.Status == false)">Inactive Only</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel me-1"></i> Filter</button>
+            @if (!string.IsNullOrWhiteSpace(Model.Keyword) || Model.CategoryId.HasValue || Model.Status.HasValue)
+            {
+                <a asp-page="./Index" class="btn btn-outline-secondary" title="Reset"><i class="bi bi-x-lg"></i></a>
+            }
+        </div>
+    </form>
+</div>
+
+<!-- Articles Table -->
+<div class="card card-modern">
+    <div class="table-responsive">
+        <table class="table table-custom mb-0">
+            <thead>
+                <tr>
+                    <th>Article ID</th>
+                    <th>Headline</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Created Date</th>
+                    <th>Author</th>
+                    <th>Tags</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Articles == null || !Model.Articles.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">No news articles found.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var art in Model.Articles)
+                    {
+                        <tr>
+                            <td class="fw-semibold">#@art.NewsArticleId</td>
+                            <td style="max-width: 280px;">
+                                <div class="fw-bold text-dark text-truncate">@art.Headline</div>
+                                @if (!string.IsNullOrWhiteSpace(art.NewsTitle) && art.NewsTitle != art.Headline)
+                                {
+                                    <small class="text-muted text-truncate d-block">@art.NewsTitle</small>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    @(art.CategoryName ?? "N/A")
+                                </span>
+                            </td>
+                            <td>
+                                @if (art.NewsStatus == true)
+                                {
+                                    <span class="badge badge-active"><i class="bi bi-check-circle me-1"></i>Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-inactive"><i class="bi bi-dash-circle me-1"></i>Inactive</span>
+                                }
+                            </td>
+                            <td class="small text-muted">
+                                <i class="bi bi-calendar3 me-1"></i>@(art.CreatedDate?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")
+                            </td>
+                            <td class="small fw-semibold text-secondary">
+                                <i class="bi bi-person me-1"></i>@(art.CreatedByName ?? "Staff")
+                            </td>
+                            <td style="max-width: 180px;">
+                                @foreach (var t in art.Tags)
+                                {
+                                    <span class="badge-tag">#@t.TagName</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-outline-primary btn-sm me-1"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editArticleModal"
+                                        data-id="@art.NewsArticleId"
+                                        data-headline="@art.Headline"
+                                        data-title="@art.NewsTitle"
+                                        data-content="@art.NewsContent"
+                                        data-source="@art.NewsSource"
+                                        data-category="@art.CategoryId"
+                                        data-status="@(art.NewsStatus == true ? "true" : "false")"
+                                        data-tags="@string.Join(",", art.Tags.Select(t => t.TagId))">
+                                    <i class="bi bi-pencil me-1"></i> Edit
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteArticleModal"
+                                        data-id="@art.NewsArticleId"
+                                        data-headline="@art.Headline">
+                                    <i class="bi bi-trash me-1"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create Modal -->
+<div class="modal fade" id="createArticleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Create">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-plus text-primary me-2"></i>Create New News Article</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Article ID <span class="text-danger">*</span></label>
+                            <input asp-for="ArticleInput.NewsArticleId" class="form-control" placeholder="e.g. NA101" required />
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold small">Headline <span class="text-danger">*</span></label>
+                            <input asp-for="ArticleInput.Headline" class="form-control" placeholder="Catchy article headline..." required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Full Title</label>
+                            <input asp-for="ArticleInput.NewsTitle" class="form-control" placeholder="Descriptive title..." />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Category <span class="text-danger">*</span></label>
+                            <select asp-for="ArticleInput.CategoryId" class="form-select" required>
+                                <option value="">-- Choose Category --</option>
+                                @foreach (var c in Model.Categories)
+                                {
+                                    <option value="@c.CategoryId">@c.CategoryName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">News Source</label>
+                            <input asp-for="ArticleInput.NewsSource" class="form-control" placeholder="e.g. FU Internal, Press Release, Internet" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Article Content</label>
+                            <textarea asp-for="ArticleInput.NewsContent" class="form-control" rows="5" placeholder="Full body content of the article..."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small mb-2">Assign Tags</label>
+                            <div class="d-flex flex-wrap gap-2 p-2 border rounded-3 bg-light">
+                                @foreach (var t in Model.AvailableTags)
+                                {
+                                    <div class="form-check form-check-inline m-0">
+                                        <input class="form-check-input" type="checkbox" name="SelectedTagIds" value="@t.TagId" id="createTag_@t.TagId" />
+                                        <label class="form-check-label small" for="createTag_@t.TagId">@t.TagName</label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" name="ArticleInput.NewsStatus" value="true" class="form-check-input" checked />
+                                <label class="form-check-label fw-semibold small">Publish as Active (Visible to public)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Save Article</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editArticleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Update">
+                <input type="hidden" id="editArticleId" name="ArticleInput.NewsArticleId" />
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square text-primary me-2"></i>Edit News Article</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Article ID</label>
+                            <input id="editArticleIdDisplay" class="form-control bg-light" disabled />
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold small">Headline <span class="text-danger">*</span></label>
+                            <input id="editHeadline" name="ArticleInput.Headline" class="form-control" required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Full Title</label>
+                            <input id="editTitle" name="ArticleInput.NewsTitle" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Category <span class="text-danger">*</span></label>
+                            <select id="editCategory" name="ArticleInput.CategoryId" class="form-select" required>
+                                <option value="">-- Choose Category --</option>
+                                @foreach (var c in Model.Categories)
+                                {
+                                    <option value="@c.CategoryId">@c.CategoryName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">News Source</label>
+                            <input id="editSource" name="ArticleInput.NewsSource" class="form-control" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Article Content</label>
+                            <textarea id="editContent" name="ArticleInput.NewsContent" class="form-control" rows="5"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small mb-2">Assign Tags</label>
+                            <div class="d-flex flex-wrap gap-2 p-2 border rounded-3 bg-light">
+                                @foreach (var t in Model.AvailableTags)
+                                {
+                                    <div class="form-check form-check-inline m-0">
+                                        <input class="form-check-input edit-tag-checkbox" type="checkbox" name="SelectedTagIds" value="@t.TagId" id="editTag_@t.TagId" />
+                                        <label class="form-check-label small" for="editTag_@t.TagId">@t.TagName</label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input id="editStatus" name="ArticleInput.NewsStatus" class="form-check-input" type="checkbox" value="true" />
+                                <label class="form-check-label fw-semibold small">Publish as Active (Visible to public)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i> Update Article</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteArticleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Delete">
+                <input type="hidden" id="deleteArticleId" name="articleId" />
+                <div class="modal-header bg-danger-subtle">
+                    <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Delete Article</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="mb-0">Are you sure you want to permanently delete article: <strong id="deleteArticleHeadline" class="text-danger"></strong>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i> Confirm Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const editArtModal = document.getElementById('editArticleModal');
+        if (editArtModal) {
+            editArtModal.addEventListener('show.bs.modal', function (event) {
+                const btn = event.relatedTarget;
+                const id = btn.getAttribute('data-id');
+                const headline = btn.getAttribute('data-headline');
+                const title = btn.getAttribute('data-title');
+                const content = btn.getAttribute('data-content');
+                const source = btn.getAttribute('data-source');
+                const catId = btn.getAttribute('data-category');
+                const status = btn.getAttribute('data-status') === 'true';
+                const tagsStr = btn.getAttribute('data-tags') || '';
+                const tagIds = tagsStr ? tagsStr.split(',') : [];
+
+                document.getElementById('editArticleId').value = id;
+                document.getElementById('editArticleIdDisplay').value = '#' + id;
+                document.getElementById('editHeadline').value = headline || '';
+                document.getElementById('editTitle').value = title || '';
+                document.getElementById('editContent').value = content || '';
+                document.getElementById('editSource').value = source || '';
+                document.getElementById('editCategory').value = catId || '';
+                document.getElementById('editStatus').checked = status;
+
+                // Set tag checkboxes
+                document.querySelectorAll('.edit-tag-checkbox').forEach(cb => {
+                    cb.checked = tagIds.includes(cb.value);
+                });
+            });
+        }
+
+        const deleteArtModal = document.getElementById('deleteArticleModal');
+        if (deleteArtModal) {
+            deleteArtModal.addEventListener('show.bs.modal', function (event) {
+                const btn = event.relatedTarget;
+                const id = btn.getAttribute('data-id');
+                const headline = btn.getAttribute('data-headline');
+
+                document.getElementById('deleteArticleId').value = id;
+                document.getElementById('deleteArticleHeadline').textContent = headline + ' (#' + id + ')';
+            });
+        }
+    </script>
+}

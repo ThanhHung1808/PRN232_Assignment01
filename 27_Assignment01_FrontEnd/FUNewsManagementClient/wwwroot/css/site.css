@@ -1,0 +1,216 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --primary-light: #eef2ff;
+    --secondary: #0ea5e9;
+    --dark: #0f172a;
+    --slate: #334155;
+    --muted: #64748b;
+    --light-bg: #f8fafc;
+    --card-bg: #ffffff;
+    --border-color: #e2e8f0;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--light-bg);
+    color: var(--dark);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Navbar */
+.navbar-custom {
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    padding: 0.8rem 1.5rem;
+}
+
+.brand-logo {
+    font-weight: 800;
+    font-size: 1.25rem;
+    background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.nav-link {
+    font-weight: 500;
+    color: var(--slate) !important;
+    padding: 0.5rem 0.9rem !important;
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--primary) !important;
+    background: var(--primary-light);
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    padding: 0.5rem 1.1rem;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+}
+
+.btn-outline-primary {
+    color: var(--primary);
+    border-color: var(--primary);
+    font-weight: 600;
+    border-radius: var(--radius-md);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary);
+    color: white;
+}
+
+.btn-danger {
+    border-radius: var(--radius-md);
+    font-weight: 600;
+}
+
+/* Cards */
+.card-modern {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.25s ease;
+    overflow: hidden;
+}
+
+.card-modern:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+/* Badges */
+.badge-role-admin {
+    background-color: #fee2e2;
+    color: #991b1b;
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 20px;
+}
+
+.badge-role-staff {
+    background-color: #e0e7ff;
+    color: #3730a3;
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 20px;
+}
+
+.badge-active {
+    background-color: #d1fae5;
+    color: #065f46;
+    font-weight: 600;
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+}
+
+.badge-inactive {
+    background-color: #f1f5f9;
+    color: #64748b;
+    font-weight: 600;
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+}
+
+.badge-tag {
+    background: #f8fafc;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    display: inline-block;
+    margin: 2px;
+}
+
+/* Modals */
+.modal-content {
+    border-radius: var(--radius-lg);
+    border: none;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    background-color: var(--light-bg);
+    border-bottom: 1px solid var(--border-color);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: 1.25rem 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid var(--border-color);
+    padding: 1rem 1.5rem;
+}
+
+/* Tables */
+.table-custom {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-custom th {
+    background: #f8fafc;
+    color: var(--slate);
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.85rem 1rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.table-custom td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.92rem;
+}
+
+.table-custom tr:hover td {
+    background-color: #fafafa;
+}
+
+/* Footer */
+footer {
+    margin-top: auto;
+    background: #ffffff;
+    border-top: 1px solid var(--border-color);
+    padding: 1.25rem 0;
+    font-size: 0.875rem;
+    color: var(--muted);
+}
