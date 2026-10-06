@@ -4,32 +4,28 @@
     ViewData["Title"] = "Public News Portal";
 }
 
-<div class="hero-banner-creative p-4 p-md-5 mb-4 position-relative">
-    <div class="row align-items-center position-relative" style="z-index: 2;">
-        <div class="col-md-8">
-            <span class="badge px-3 py-2 mb-2 text-white" style="background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 30px;">
-                <i class="bi bi-stars me-1 text-warning"></i> Campus Insights & Highlights
-            </span>
-            <h1 class="display-5 fw-bold text-white mb-2" style="font-family: 'Outfit', sans-serif;">Welcome to FU News Portal</h1>
-            <p class="text-white-50 mb-0 fs-6">Stay updated with the latest university announcements, academic research, student activities, and alumni achievements.</p>
+<!-- Top Welcome & Search Dock -->
+<div class="card card-modern p-4 mb-4 border-0">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="bi bi-compass text-primary me-2"></i>Explore University News
+            </h2>
+            <p class="text-muted mb-0">Discover announcements, academic breakthroughs, campus events, and stories.</p>
         </div>
-        <div class="col-md-4 text-md-end mt-3 mt-md-0">
-            <div class="d-inline-flex flex-column align-items-md-end">
-                <span class="badge fs-6 px-4 py-2 rounded-pill text-white shadow-sm" style="background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.4);">
-                    <i class="bi bi-newspaper me-1"></i> @Model.Articles.Count Articles Published
-                </span>
-            </div>
+        <div>
+            <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill shadow-sm">
+                <i class="bi bi-newspaper me-1"></i> @Model.Articles.Count Articles Available
+            </span>
         </div>
     </div>
-</div>
 
-<!-- Search & Filter Bar -->
-<div class="card card-modern p-3 mb-4">
-    <form method="get" class="row g-3 align-items-center">
+    <!-- Filter Form -->
+    <form method="get" class="row g-2 align-items-center">
         <div class="col-md-6">
             <div class="input-group">
-                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                <input type="text" name="Keyword" class="form-control border-start-0" placeholder="Search by title, headline or content..." value="@Model.Keyword" />
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-primary"></i></span>
+                <input type="text" name="Keyword" class="form-control border-start-0" placeholder="Search by headline, title, or content..." value="@Model.Keyword" />
             </div>
         </div>
         <div class="col-md-4">
@@ -51,7 +47,7 @@
     </form>
 </div>
 
-<!-- Articles Grid -->
+<!-- Bento Grid of Articles -->
 @if (Model.Articles == null || !Model.Articles.Any())
 {
     <div class="card card-modern text-center p-5">
@@ -62,62 +58,118 @@
 }
 else
 {
-    <div class="row g-4">
-        @foreach (var article in Model.Articles)
-        {
-            <div class="col-md-6 col-lg-4">
-                <div class="card card-modern h-100 d-flex flex-column">
-                    <div class="card-body d-flex flex-column">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="article-card-header-badge">
-                                <i class="bi bi-folder me-1"></i>@(article.CategoryName ?? "General")
-                            </span>
-                            <small class="text-muted">
-                                <i class="bi bi-calendar3 me-1"></i>@(article.CreatedDate?.ToString("dd/MM/yyyy") ?? "N/A")
-                            </small>
-                        </div>
-                        <h5 class="card-title fw-bold text-dark mt-2 mb-2 line-clamp-2">
-                            @article.Headline
-                        </h5>
-                        @if (!string.IsNullOrWhiteSpace(article.NewsTitle) && article.NewsTitle != article.Headline)
-                        {
-                            <h6 class="text-muted fs-6 mb-2">@article.NewsTitle</h6>
-                        }
-                        <p class="card-text text-secondary mb-3 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
-                            @article.NewsContent
-                        </p>
-                        
-                        <div class="mb-3">
-                            @foreach (var tag in article.Tags)
-                            {
-                                <span class="badge-tag">#@tag.TagName</span>
-                            }
-                        </div>
+    var featured = Model.Articles.First();
+    var otherArticles = Model.Articles.Skip(1).ToList();
 
-                        <div class="pt-3 border-top d-flex justify-content-between align-items-center mt-auto">
-                            <small class="text-muted">
-                                <i class="bi bi-person me-1"></i>@(article.CreatedByName ?? "FU Staff")
-                            </small>
-                            <button type="button" class="btn btn-outline-primary btn-sm px-3" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#viewArticleModal"
-                                    data-id="@article.NewsArticleId"
-                                    data-headline="@article.Headline"
-                                    data-title="@article.NewsTitle"
-                                    data-content="@article.NewsContent"
-                                    data-source="@article.NewsSource"
-                                    data-date="@(article.CreatedDate?.ToString("dd/MM/yyyy HH:mm"))"
-                                    data-category="@article.CategoryName"
-                                    data-author="@article.CreatedByName"
-                                    data-tags="@string.Join(", ", article.Tags.Select(t => t.TagName))">
-                                Read More <i class="bi bi-arrow-right ms-1"></i>
-                            </button>
+    <!-- FEATURED BENTO HERO ARTICLE -->
+    <div class="bento-hero-card mb-4">
+        <div class="row align-items-center position-relative" style="z-index: 2;">
+            <div class="col-lg-8">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                    <span class="badge px-3 py-2 rounded-pill bg-white text-primary fw-bold shadow-sm">
+                        <i class="bi bi-star-fill text-warning me-1"></i> TOP STORY
+                    </span>
+                    <span class="badge rounded-pill text-white" style="background: rgba(255,255,255,0.25); backdrop-filter: blur(8px);">
+                        @(featured.CategoryName ?? "General")
+                    </span>
+                    <small class="text-white-50 ms-2">
+                        <i class="bi bi-calendar3 me-1"></i>@(featured.CreatedDate?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")
+                    </small>
+                </div>
+                <h2 class="display-6 fw-bold text-white mb-2">@featured.Headline</h2>
+                @if (!string.IsNullOrWhiteSpace(featured.NewsTitle) && featured.NewsTitle != featured.Headline)
+                {
+                    <h5 class="text-white-50 mb-3 fw-normal">@featured.NewsTitle</h5>
+                }
+                <p class="text-white-50 fs-6 mb-4" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.6;">
+                    @featured.NewsContent
+                </p>
+                <div class="d-flex align-items-center gap-3">
+                    <button type="button" class="btn btn-light px-4 py-2 text-primary fw-bold shadow"
+                            data-bs-toggle="modal" 
+                            data-bs-target="#viewArticleModal"
+                            data-id="@featured.NewsArticleId"
+                            data-headline="@featured.Headline"
+                            data-title="@featured.NewsTitle"
+                            data-content="@featured.NewsContent"
+                            data-source="@featured.NewsSource"
+                            data-date="@(featured.CreatedDate?.ToString("dd/MM/yyyy HH:mm"))"
+                            data-category="@featured.CategoryName"
+                            data-author="@featured.CreatedByName"
+                            data-tags="@string.Join(", ", featured.Tags.Select(t => t.TagName))">
+                        Read Full Story <i class="bi bi-arrow-right ms-1"></i>
+                    </button>
+                    <small class="text-white-50">Author: <strong class="text-white">@(featured.CreatedByName ?? "FU Staff")</strong></small>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center text-lg-end mt-4 mt-lg-0">
+                <div class="d-inline-flex flex-column align-items-center justify-content-center p-4 rounded-4" style="background: rgba(255,255,255,0.15); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.3);">
+                    <i class="bi bi-fire fs-1 text-warning mb-1"></i>
+                    <span class="fs-4 fw-bold text-white">#1 Featured</span>
+                    <span class="text-white-50 small">Highest Editorial Priority</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OTHER STORIES GRID -->
+    @if (otherArticles.Any())
+    {
+        <div class="d-flex align-items-center justify-content-between mb-3 mt-4">
+            <h4 class="fw-bold text-dark mb-0"><i class="bi bi-grid-fill text-primary me-2"></i>Campus Stories</h4>
+            <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill">@otherArticles.Count Articles</span>
+        </div>
+        <div class="row g-4">
+            @foreach (var article in otherArticles)
+            {
+                <div class="col-md-6 col-xl-4">
+                    <div class="card card-modern h-100 d-flex flex-column">
+                        <div class="card-body d-flex flex-column p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="article-card-header-badge">
+                                    <i class="bi bi-folder me-1"></i>@(article.CategoryName ?? "General")
+                                </span>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar3 me-1"></i>@(article.CreatedDate?.ToString("dd/MM/yyyy") ?? "N/A")
+                                </small>
+                            </div>
+                            <h5 class="card-title fw-bold text-dark mb-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 3rem;">
+                                @article.Headline
+                            </h5>
+                            <p class="card-text text-secondary mb-3 flex-grow-1 small" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.6;">
+                                @article.NewsContent
+                            </p>
+                            <div class="mb-3">
+                                @foreach (var tag in article.Tags)
+                                {
+                                    <span class="badge-tag">#@tag.TagName</span>
+                                }
+                            </div>
+                            <div class="pt-3 border-top d-flex justify-content-between align-items-center mt-auto">
+                                <small class="text-muted">
+                                    <i class="bi bi-person me-1"></i>@(article.CreatedByName ?? "FU Staff")
+                                </small>
+                                <button type="button" class="btn btn-outline-primary btn-sm px-3" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#viewArticleModal"
+                                        data-id="@article.NewsArticleId"
+                                        data-headline="@article.Headline"
+                                        data-title="@article.NewsTitle"
+                                        data-content="@article.NewsContent"
+                                        data-source="@article.NewsSource"
+                                        data-date="@(article.CreatedDate?.ToString("dd/MM/yyyy HH:mm"))"
+                                        data-category="@article.CategoryName"
+                                        data-author="@article.CreatedByName"
+                                        data-tags="@string.Join(", ", article.Tags.Select(t => t.TagName))">
+                                    Read More <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
-    </div>
+            }
+        </div>
+    }
 }
 
 <!-- Detail Modal -->
