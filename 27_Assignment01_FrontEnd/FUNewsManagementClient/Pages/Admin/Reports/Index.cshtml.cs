@@ -27,9 +27,14 @@ namespace FUNewsManagementClient.Pages.Admin.Reports
         public async Task<IActionResult> OnGetAsync()
         {
             var user = HttpContext.Session.GetObject<LoginResponse>("CurrentUser");
-            if (user == null || !string.Equals(user.Role, "Admin", StringComparison.OrdinalIgnoreCase))
+            if (user == null)
             {
                 return RedirectToPage("/Login");
+            }
+            if (!string.Equals(user.Role, "Admin", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["ErrorMessage"] = "Access denied. Admin role required.";
+                return RedirectToPage("/Index");
             }
 
             var query = $"api/reports/statistics?startDate={StartDate:yyyy-MM-dd}&endDate={EndDate:yyyy-MM-dd}";

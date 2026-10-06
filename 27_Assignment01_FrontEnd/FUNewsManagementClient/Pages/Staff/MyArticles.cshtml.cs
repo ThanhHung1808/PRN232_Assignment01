@@ -20,9 +20,14 @@ namespace FUNewsManagementClient.Pages.Staff
         public async Task<IActionResult> OnGetAsync()
         {
             var user = HttpContext.Session.GetObject<LoginResponse>("CurrentUser");
-            if (user == null || !string.Equals(user.Role, "Staff", StringComparison.OrdinalIgnoreCase))
+            if (user == null)
             {
                 return RedirectToPage("/Login");
+            }
+            if (!string.Equals(user.Role, "Staff", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["ErrorMessage"] = "Access denied. Only Staff members can view editorial history.";
+                return RedirectToPage("/Index");
             }
 
             var res = await _apiService.GetAsync<List<NewsArticleResponseDto>>($"api/newsarticles/author/{user.AccountId}");

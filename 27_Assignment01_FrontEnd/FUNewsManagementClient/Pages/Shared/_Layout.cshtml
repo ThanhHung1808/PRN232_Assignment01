@@ -5,6 +5,7 @@
     var currentUser = HttpContextAccessor.HttpContext?.Session.GetObject<LoginResponse>("CurrentUser");
     bool isAdmin = currentUser != null && string.Equals(currentUser.Role, "Admin", StringComparison.OrdinalIgnoreCase);
     bool isStaff = currentUser != null && string.Equals(currentUser.Role, "Staff", StringComparison.OrdinalIgnoreCase);
+    bool isLecturer = currentUser != null && string.Equals(currentUser.Role, "Lecturer", StringComparison.OrdinalIgnoreCase);
     string currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
 }
 <!DOCTYPE html>
@@ -94,6 +95,19 @@
                         </li>
                     </ul>
                 }
+
+                @if (isLecturer)
+                {
+                    <div class="sidebar-section-title">Lecturer Portal</div>
+                    <ul class="sidebar-menu">
+                        <li>
+                            <a class="sidebar-item @(currentPage == "/Staff/Profile" ? "active" : "")" asp-page="/Staff/Profile">
+                                <i class="bi bi-person-gear text-info"></i>
+                                <span>My Profile</span>
+                            </a>
+                        </li>
+                    </ul>
+                }
             </div>
 
             <!-- USER CARD IN SIDEBAR -->
@@ -106,7 +120,7 @@
                         </div>
                         <div class="user-details">
                             <div class="user-name text-truncate">@currentUser.AccountName</div>
-                            <span class="badge @(isAdmin ? "badge-role-admin" : "badge-role-staff")" style="font-size: 0.68rem; padding: 0.2rem 0.5rem;">
+                            <span class="badge @(isAdmin ? "badge-role-admin" : isStaff ? "badge-role-staff" : "bg-secondary text-white")" style="font-size: 0.68rem; padding: 0.2rem 0.5rem;">
                                 @currentUser.Role
                             </span>
                         </div>
@@ -141,11 +155,11 @@
                     @if (currentUser != null)
                     {
                         <div class="d-flex align-items-center gap-2">
-                            <span class="badge @(isAdmin ? "badge-role-admin" : "badge-role-staff")">
-                                <i class="bi @(isAdmin ? "bi-shield-lock" : "bi-person-badge") me-1"></i>
+                            <span class="badge @(isAdmin ? "badge-role-admin" : isStaff ? "badge-role-staff" : "bg-secondary text-white")">
+                                <i class="bi @(isAdmin ? "bi-shield-lock" : isStaff ? "bi-person-badge" : "bi-book") me-1"></i>
                                 @currentUser.Role
                             </span>
-                            @if (isStaff)
+                            @if (isStaff || isLecturer)
                             {
                                 <a asp-page="/Staff/Profile" class="btn btn-sm btn-outline-primary d-none d-sm-inline-flex align-items-center">
                                     <i class="bi bi-person-circle me-1"></i> @currentUser.AccountName

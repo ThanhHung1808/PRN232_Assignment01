@@ -29,9 +29,13 @@ namespace FUNewsManagementClient.Pages
                 {
                     Response.Redirect("/Admin/Accounts/Index");
                 }
-                else
+                else if (string.Equals(user.Role, "Staff", StringComparison.OrdinalIgnoreCase))
                 {
                     Response.Redirect("/Staff/Articles/Index");
+                }
+                else
+                {
+                    Response.Redirect("/Index");
                 }
             }
         }
@@ -51,14 +55,18 @@ namespace FUNewsManagementClient.Pages
             }
 
             HttpContext.Session.SetObject("CurrentUser", response.Data);
-            TempData["SuccessMessage"] = $"Welcome back, {response.Data.AccountName}!";
+            TempData["SuccessMessage"] = $"Welcome back, {response.Data.AccountName} ({response.Data.Role})!";
 
             if (string.Equals(response.Data.Role, "Admin", StringComparison.OrdinalIgnoreCase))
             {
                 return RedirectToPage("/Admin/Accounts/Index");
             }
+            else if (string.Equals(response.Data.Role, "Staff", StringComparison.OrdinalIgnoreCase))
+            {
+                return RedirectToPage("/Staff/Articles/Index");
+            }
 
-            return RedirectToPage("/Staff/Articles/Index");
+            return RedirectToPage("/Index");
         }
     }
 }

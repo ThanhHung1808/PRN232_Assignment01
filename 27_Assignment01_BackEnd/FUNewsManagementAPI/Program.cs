@@ -1,10 +1,12 @@
 using System.Text;
+using FUNewsManagementAPI.DAO;
 using FUNewsManagementAPI.DTOs;
 using FUNewsManagementAPI.Models;
 using FUNewsManagementAPI.Repositories.Implementations;
 using FUNewsManagementAPI.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
@@ -14,6 +16,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.Configure<AdminAccountConfig>(builder.Configuration.GetSection("AdminAccount"));
+
+// Register DbContext with ConnectionString "MyCNN"
+builder.Services.AddDbContext<FUNewsManagementDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("MyCNN")));
 
 // Repositories DI
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();

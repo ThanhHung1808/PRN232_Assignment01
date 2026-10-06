@@ -65,87 +65,230 @@ Assignment/
 
 ---
 
-## 3. TẦNG CONTROLLER: VAI TRÒ, PHƯƠNG THỨC VÀ TÁC DỤNG CHI TIẾT
+## 3. TẦNG CONTROLLER: VAI TRÒ, Ý NGHĨA CÁC METHOD, MỤC ĐÍCH VÀ TÁC DỤNG CHI TIẾT
 
-### Controller dùng để làm gì?
-Controller là **"Bộ điều khiển" / "Cổng giao tiếp ngoài cùng"** của Web API. Khi người dùng hoặc ứng dụng Client gửi một yêu cầu HTTP đến máy chủ:
-1. **Routing**: Định tuyến URL (VD: `GET api/newsarticles/1`) đến đúng hàm (Action Method) phụ trách.
-2. **Model Binding & Validation**: Tự động lấy dữ liệu từ URL, Query String hoặc JSON Body và kiểm tra tính hợp lệ (`ModelState.IsValid`).
-3. **Orchestration**: Nhận yêu cầu và gọi tầng **Repository** tương ứng để xử lý nghiệp vụ, tuyệt đối không viết câu lệnh truy vấn CSDL trực tiếp trong Controller.
-4. **Format & Status Code**: Đóng gói kết quả trả về đúng chuẩn HTTP Status Code (200 OK, 201 Created, 400 BadRequest, 401 Unauthorized, 404 NotFound, 409 Conflict, 500 Error).
-5. **OData Querying**: Tích hợp `[EnableQuery]` để bộ máy OData tự động chuyển đổi các câu query URL thành câu lệnh SQL tối ưu.
+### 3.0. Controller dùng để làm gì?
+Controller trong kiến trúc ASP.NET Core Web API là **Tầng điều khiển trung tâm (API Gateway / Presentation Layer)** của hệ thống BackEnd:
+1. **Tiếp nhận & Định tuyến (Routing)**: Phân tích đường dẫn URL từ Client gửi lên (ví dụ: `GET /api/accounts/3` hoặc `POST /api/auth/login`) để điều phối đến đúng Action Method tương ứng.
+2. **Khai thác tham số (Model Binding) & Rà soát dữ liệu (Validation)**:
+   - Tự động bóc tách tham số từ Route (`[FromRoute]`), Query String (`[FromQuery]`), hoặc JSON Body (`[FromBody]`).
+   - Kiểm tra tính hợp lệ qua `ModelState.IsValid` (ví dụ: bắt buộc nhập, định dạng email, độ dài chuỗi). Nếu sai trả ngay `400 Bad Request`.
+3. **Điều phối nghiệp vụ (Orchestration)**: Gọi tầng **Repository** (thông qua Dependency Injection) để thực thi nghiệp vụ và lấy dữ liệu từ CSDL, hoàn toàn không gọi trực tiếp `DbContext`.
+4. **Phản hồi chuẩn RESTful & HTTP Status Code**: Đóng gói dữ liệu đầu ra và gán mã trạng thái mạng chính xác:
+   - `200 OK`: Truy vấn, cập nhật hoặc xóa thành công.
+   - `201 Created`: Tạo mới thành công (kèm header `Location` trỏ đến tài nguyên vừa tạo).
+   - `400 Bad Request`: Dữ liệu đầu vào sai cú pháp hoặc vi phạm ràng buộc logic (ví dụ: xóa tài khoản đã có bài viết).
+   - `401 Unauthorized`: Chưa đăng nhập hoặc sai thông tin xác thực.
+   - `404 Not Found`: Không tìm thấy bản ghi với ID yêu cầu.
+   - `409 Conflict`: Xung đột dữ liệu (ví dụ: trùng khóa chính ID hoặc trùng Email).
+   - `500 Internal Server Error`: Lỗi hệ thống ngoài ý muốn.
+5. **Tích hợp OData v8 (`[EnableQuery]`)**: Tự động chuyển đổi các tham số URL chuẩn OData (`$filter`, `$orderby`, `$select`, `$top`, `$skip`, `$count`) thành câu lệnh SQL truy vấn trực tiếp dưới Database cực kỳ tối ưu, giúp Client linh hoạt lấy đúng dữ liệu mình cần.
+
+> **Giải thích về Route trên Swagger (tại sao có cả `/api/Accounts` và `/odata/Accounts`?)**:
+> - Nhánh `/api/Accounts`: Là tuyến đường RESTful API truyền thống được định nghĩa qua `[Route("api/[controller]")]`.
+> - Nhánh `/odata/Accounts` & `/odata/Accounts/$count`: Được bộ máy OData v8 tự động đăng ký trong `Program.cs` thông qua `modelBuilder.EntitySet<SystemAccount>("Accounts")` và `options.AddRouteComponents("odata", GetEdmModel())`. Tuyến này cho phép truy vấn theo đúng chuẩn giao thức mở quốc tế OData OASIS Standard (đếm tổng số bản ghi qua `$count`, truy vấn metadata qua `$metadata`).
 
 ---
 
 ### 3.1. `AuthController` (`Route: api/auth`)
-*Phụ trách toàn bộ việc xác thực danh tính người dùng và cấp phát Token JWT.*
+*Cổng xác thực danh tính duy nhất của toàn bộ hệ thống.*
 
-| Phương thức | HTTP Method & Route | Tham số đầu vào | Tác dụng & Chi tiết xử lý |
-| :--- | :--- | :--- | :--- |
-| `Login` | `POST api/auth/login` | `[FromBody] LoginRequest request` (Email, Password) | - **Bước 1**: Kiểm tra tài khoản Admin đặc biệt từ file `appsettings.json` (`admin@FUNewsManagementSystem.org`). Nếu đúng, cấp quyền `Admin`.<br>- **Bước 2**: Nếu không phải admin, tra cứu tài khoản trong CSDL qua `ISystemAccountRepository.LoginAsync()`.<br>- **Bước 3**: Tạo chuỗi **JWT Bearer Token** chứa các Claims (`NameIdentifier`, `Name`, `Email`, `Role`) ký bằng mã bí mật HMAC-SHA256, hạn dùng 180 phút.<br>- Trả về `LoginResponse` chứa thông tin user và Token. |
-
----
-
-### 3.2. `AccountsController` (`Route: api/accounts`)
-*Kế thừa `ODataController` - Phụ trách quản lý tài khoản người dùng hệ thống (`SystemAccount`). Dành riêng cho Admin và trang cá nhân Staff.*
-
-| Phương thức | HTTP Method & Route | Tham số đầu vào | Tác dụng & Chi tiết xử lý |
-| :--- | :--- | :--- | :--- |
-| `GetAccounts` | `GET api/accounts`<br>`[EnableQuery]` | *(OData query string)* | Lấy danh sách toàn bộ tài khoản trong hệ thống kèm số lượng bài viết do tài khoản đó tạo (`CreatedArticlesCount`). Hỗ trợ lọc OData `$filter`, `$orderby`. |
-| `GetAccount` | `GET api/accounts/{id}` | `short id` | Lấy thông tin chi tiết một tài khoản theo ID. Trả về `404 NotFound` nếu không tồn tại. |
-| `CreateAccount` | `POST api/accounts` | `[FromBody] AccountCreateUpdateDto dto` | Tạo mới tài khoản (chỉ Admin). Kiểm tra tính toàn vẹn: cấm trùng `AccountId`, cấm trùng `AccountEmail`. Nếu trùng báo lỗi `409 Conflict`. Trả về `201 CreatedAtAction`. |
-| `UpdateAccount` | `PUT api/accounts/{id}` | `short id`, `[FromBody] AccountCreateUpdateDto dto` | Cập nhật tên, email, vai trò, mật khẩu của tài khoản. Kiểm tra không được trùng email với tài khoản khác. Trả về `200 OK`. |
-| `DeleteAccount` | `DELETE api/accounts/{id}` | `short id` | Xóa tài khoản khỏi hệ thống.<br>⚠️ **Ràng buộc nghiệp vụ bắt buộc**: Nếu tài khoản đã từng tạo bất kỳ bài viết tin tức nào (`HasCreatedArticlesAsync == true`), API sẽ **chặn xóa** và trả về `400 BadRequest` để bảo vệ dữ liệu lịch sử bài viết. |
-| `UpdateProfile` | `PUT api/accounts/profile/{id}` | `short id`, `[FromBody] ProfileUpdateDto dto` | Dành cho Staff tự chỉnh sửa thông tin cá nhân (Tên, Email, đổi Mật khẩu mới nếu muốn). |
+#### `POST /api/auth/login`
+- **Mục đích**: Xác thực người dùng (Đăng nhập) và cấp phát chuỗi mã hóa bảo mật JSON Web Token (JWT Bearer Token).
+- **Tham số đầu vào**:
+  - `[FromBody] LoginRequest request`: Gồm `Email` (chuỗi định dạng email) và `Password` (chuỗi mật khẩu).
+- **Mã phản hồi (HTTP Status Codes)**:
+  - `200 OK`: Đăng nhập thành công, trả về đối tượng `LoginResponse` (gồm: AccountId, AccountName, AccountEmail, Role, Token).
+  - `400 Bad Request`: Dữ liệu đầu vào không hợp lệ (để trống email hoặc password).
+  - `401 Unauthorized`: Sai email hoặc mật khẩu (`"Invalid email or password."`).
+- **Ý nghĩa & Tác dụng thực tế**:
+  1. **Ưu tiên kiểm tra tài khoản Quản trị viên (Admin)**: So khớp trực tiếp với thông tin cấu hình trong `appsettings.json` (`admin@FUNewsManagementSystem.org` / `admin`). Nếu khớp, hệ thống lập tức cấp quyền `Role = "Admin"` mà không cần tốn chi phí truy vấn cơ sở dữ liệu.
+  2. **Kiểm tra tài khoản trong Database**: Nếu không phải Admin, chuyển sang gọi `_accountRepository.LoginAsync(email, password)`. Kiểm tra mật khẩu và chuyển đổi mã số vai trò: `AccountRole = 1` ➔ vai trò `Staff`, `AccountRole = 2` ➔ vai trò `Lecturer`.
+  3. **Ký số JWT Token**: Sinh mã JWT chứa các `Claims` định danh: `NameIdentifier` (ID), `Name` (Tên), `Email`, `Role` (Vai trò) với thuật toán HMAC-SHA256, thời hạn 180 phút. Token này được trả về để Client gửi kèm trong Header `Authorization: Bearer <token>` ở mọi tác vụ quản trị tiếp theo.
 
 ---
 
-### 3.3. `CategoriesController` (`Route: api/categories`)
-*Kế thừa `ODataController` - Quản lý các chuyên mục tin tức (`Category`). Hỗ trợ danh mục cha - con (Parent-Child Hierarchy).*
+### 3.2. `AccountsController` (`Route: api/accounts` & `odata/Accounts`)
+*Kế thừa `ODataController` - Phụ trách toàn bộ nghiệp vụ quản lý tài khoản người dùng (`SystemAccount`) dành riêng cho Admin.*
 
-| Phương thức | HTTP Method & Route | Tham số đầu vào | Tác dụng & Chi tiết xử lý |
-| :--- | :--- | :--- | :--- |
-| `GetCategories` | `GET api/categories`<br>`[EnableQuery]` | `[FromQuery] bool? activeOnly` | Lấy danh sách tất cả danh mục. Nếu `activeOnly == true` thì chỉ lấy danh mục đang hoạt động (dùng cho trang công khai). Trả về kèm tên danh mục cha (`ParentCategoryName`) và số bài viết con (`ArticleCount`). |
-| `GetCategory` | `GET api/categories/{id}` | `short id` | Lấy thông tin chi tiết của 1 danh mục theo mã `id`. |
-| `CreateCategory` | `POST api/categories` | `[FromBody] CategoryCreateUpdateDto dto` | Thêm danh mục mới (Staff). Cho phép chọn danh mục cha (`ParentCategoryId`) hoặc để null (danh mục gốc). Trả về `201 Created`. |
-| `UpdateCategory` | `PUT api/categories/{id}` | `short id`, `[FromBody] CategoryCreateUpdateDto dto` | Sửa tên danh mục, mô tả, danh mục cha và trạng thái kích hoạt `IsActive`. |
-| `DeleteCategory` | `DELETE api/categories/{id}` | `short id` | Xóa danh mục.<br>⚠️ **Ràng buộc nghiệp vụ bắt buộc**: Chặn xóa và trả về `400 BadRequest` nếu danh mục đang chứa bài viết tin tức hoặc đang có các danh mục con trực thuộc. |
+#### 1. `GET /api/accounts` (và `GET /odata/Accounts`, `GET /odata/Accounts/$count`)
+- **Mục đích**: Lấy danh sách toàn bộ tài khoản nhân viên (Staff) và giảng viên (Lecturer) trong hệ thống.
+- **Tham số**: Không bắt buộc. Hỗ trợ toàn bộ cú pháp truy vấn OData qua URL (ví dụ: `$filter=accountRole eq 1`, `$orderby=accountName asc`, `$top=10`, `$skip=0`).
+- **Đầu ra**: `200 OK` kèm danh sách `IEnumerable<AccountResponseDto>`.
+- **Tác dụng**:
+  - Dữ liệu trả về được đóng gói qua `AccountResponseDto`, **tuyệt đối không trả về mật khẩu** (`AccountPassword`) ra ngoài, đảm bảo an toàn tuyệt đối.
+  - Tự động thống kê số bài viết do từng tài khoản đã đăng (`CreatedArticlesCount = a.CreatedNewsArticles.Count`) để Admin tiện theo dõi hiệu suất làm việc của nhân viên.
+  - Hỗ trợ `$count` để Client biết tổng số lượng tài khoản phục vụ phân trang.
+
+#### 2. `GET /api/accounts/{id}`
+- **Mục đích**: Xem chi tiết thông tin của 1 tài khoản cụ thể theo mã định danh.
+- **Tham số**: `[FromRoute] short id` (Mã số tài khoản cần tìm).
+- **Mã phản hồi**:
+  - `200 OK`: Trả về thực thể tài khoản.
+  - `404 Not Found`: Không tìm thấy tài khoản với mã `id` yêu cầu.
+- **Tác dụng**: Phục vụ việc xem chi tiết hoặc nạp dữ liệu cũ vào form trước khi chỉnh sửa.
+
+#### 3. `POST /api/accounts`
+- **Mục đích**: Tạo mới một tài khoản người dùng hệ thống (chức năng "Add New Account" của Admin).
+- **Tham số**: `[FromBody] AccountCreateUpdateDto dto` (gồm: AccountId, AccountName, AccountEmail, AccountRole, AccountPassword).
+- **Mã phản hồi**:
+  - `201 CreatedAtAction`: Tạo thành công, trả về header `Location` trỏ đến `GET /api/accounts/{id}` và object tài khoản vừa tạo.
+  - `400 Bad Request`: Form nhập thiếu dữ liệu bắt buộc.
+  - `409 Conflict`: Trùng mã tài khoản (`AccountId already exists`) hoặc trùng Email (`AccountEmail already exists`), hoặc cố tình đặt email trùng với email Admin tối cao.
+- **Tác dụng & Cơ chế tự động**:
+  - Đảm bảo tính duy nhất của tài khoản trên toàn hệ thống.
+  - Kết hợp với Client tự động tính toán ID tiếp theo (ví dụ: đang có ID 1..5 thì tự gợi ý ID 6). Nếu Client gửi ID = 0, Backend tự động lấy `Max(AccountId) + 1` làm khóa chính.
+
+#### 4. `PUT /api/accounts/{id}`
+- **Mục đích**: Cập nhật thông tin tài khoản hiện có (Tên, Email, Phân quyền Role, Mật khẩu).
+- **Tham số**: `[FromRoute] short id` (Mã tài khoản cần sửa), `[FromBody] AccountCreateUpdateDto dto` (Dữ liệu mới).
+- **Mã phản hồi**:
+  - `200 OK`: Cập nhật thành công, trả về thông tin tài khoản sau khi sửa.
+  - `404 Not Found`: Không tìm thấy tài khoản với `id` truyền vào.
+  - `409 Conflict`: Email mới bị trùng với một tài khoản khác trong cơ sở dữ liệu.
+- **Tác dụng**: Cho phép Admin điều chỉnh thông tin nhân sự, nâng cấp/hạ cấp quyền hạn giữa Staff và Lecturer, hoặc đặt lại mật khẩu mới.
+
+#### 5. `DELETE /api/accounts/{id}`
+- **Mục đích**: Xóa vĩnh viễn một tài khoản khỏi hệ thống.
+- **Tham số**: `[FromRoute] short id` (Mã tài khoản cần xóa).
+- **Mã phản hồi**:
+  - `200 OK`: Xóa thành công.
+  - `400 Bad Request`: **BỊ CHẶN XÓA DO RÀNG BUỘC NGHIỆP VỤ**.
+  - `404 Not Found`: Tài khoản không tồn tại.
+- **Ý nghĩa ràng buộc sống còn**:
+  - Hệ thống kiểm tra trước: `await _accountRepository.HasCreatedArticlesAsync(id)`.
+  - Nếu tài khoản này đã từng là tác giả của bất kỳ bài viết tin tức nào, API sẽ **từ chối xóa** và trả về thông báo lỗi: *"Cannot delete this account because it has created news articles."*
+  - **Tác dụng**: Ngăn chặn hiện tượng dữ liệu mồ côi (Orphan records), bảo vệ toàn vẹn lịch sử tác giả của các bài báo đã phát hành.
+
+#### 6. `PUT /api/accounts/profile/{id}`
+- **Mục đích**: Cho phép nhân viên (Staff) tự quản lý và cập nhật hồ sơ cá nhân của chính mình mà không cần nhờ đến Admin.
+- **Tham số**: `[FromRoute] short id`, `[FromBody] ProfileUpdateDto dto` (AccountName, AccountEmail, NewPassword).
+- **Mã phản hồi**: `200 OK` (thành công), `404 Not Found` (không tìm thấy tài khoản).
+- **Tác dụng**: Cho phép nhân viên đổi tên hiển thị, cập nhật email liên hệ hoặc đổi mật khẩu mới (nếu ô NewPassword để trống thì giữ nguyên mật khẩu cũ).
 
 ---
 
-### 3.4. `NewsArticlesController` (`Route: api/newsarticles`)
-*Kế thừa `ODataController` - Đây là Controller trung tâm của toàn bộ hệ thống, xử lý quản lý tin tức và gán thẻ Tag.*
+### 3.3. `CategoriesController` (`Route: api/categories` & `odata/Categories`)
+*Kế thừa `ODataController` - Quản lý cây danh mục chuyên mục tin tức (`Category`). Hỗ trợ phân cấp Danh mục Cha - Danh mục Con.*
 
-| Phương thức | HTTP Method & Route | Tham số đầu vào | Tác dụng & Chi tiết xử lý |
-| :--- | :--- | :--- | :--- |
-| `GetArticles` | `GET api/newsarticles`<br>`[EnableQuery]` | `bool? activeOnly`<br>`string? keyword`<br>`short? categoryId`<br>`int? tagId` | Truy vấn danh sách bài viết đa tiêu chí: Lọc bài kích hoạt (`activeOnly=true`), tìm kiếm từ khóa trong Title/Headline/Content, lọc theo CategoryId, lọc theo TagId. Hỗ trợ query OData. Trả về danh sách DTO kèm CategoryName, CreatedByName và danh sách Tags. |
-| `GetArticle` | `GET api/newsarticles/{id}` | `string id` | Lấy chi tiết một bài viết theo mã định danh (VD: `1`, `NA001`), nạp đầy đủ thông tin Category, Author, Tags đính kèm. |
-| `GetArticlesByAuthor` | `GET api/newsarticles/author/{authorId}` | `short authorId` | Lấy toàn bộ lịch sử các bài viết được tạo bởi chính tác giả đó (phục vụ chức năng **My News History** của Staff). Sắp xếp giảm dần theo ngày tạo. |
-| `CreateArticle` | `POST api/newsarticles` | `[FromBody] NewsArticleCreateUpdateDto dto`<br>`[FromQuery] short? createdById` | Thêm bài viết mới (Staff):<br>1. Kiểm tra không được trùng `NewsArticleId`.<br>2. Kiểm tra `CategoryId` hợp lệ.<br>3. Gán thời gian `CreatedDate = DateTime.Now` và người tạo `CreatedById`.<br>4. Tự động lưu các thẻ Tag liên kết vào bảng `NewsTag`. Trả về `201 CreatedAtAction`. |
-| `UpdateArticle` | `PUT api/newsarticles/{id}` | `string id`<br>`[FromBody] NewsArticleCreateUpdateDto dto`<br>`[FromQuery] short? updatedById` | Sửa bài viết (Staff): Cập nhật tiêu đề, nội dung, nguồn, trạng thái, người sửa (`UpdatedById`), ngày sửa (`ModifiedDate = DateTime.Now`), đồng bộ hóa lại danh sách Tags (xóa tag cũ bị bỏ, thêm tag mới được chọn). |
-| `DeleteArticle` | `DELETE api/newsarticles/{id}` | `string id` | Xóa bài viết: Tự động dọn dẹp các liên kết trong bảng `NewsTag` trước, sau đó xóa bài viết khỏi bảng `NewsArticle`. |
+#### 1. `GET /api/categories` (và `GET /odata/Categories`, `GET /odata/Categories/$count`)
+- **Mục đích**: Lấy danh sách toàn bộ các danh mục tin tức.
+- **Tham số**: `[FromQuery] bool? activeOnly` (Tùy chọn: nếu truyền `true` thì chỉ lấy danh mục đang hoạt động). Hỗ trợ OData query.
+- **Đầu ra**: `200 OK` kèm danh sách `CategoryResponseDto`.
+- **Tác dụng**:
+  - Trả về kèm tên của danh mục cha (`ParentCategoryName`) để hiển thị dạng cây phân cấp.
+  - Trả về số lượng bài viết đang trực thuộc danh mục đó (`ArticleCount = c.NewsArticles.Count`), giúp Staff biết chuyên mục nào đang có nhiều bài viết.
+  - Phục vụ cho Dropdown chọn danh mục ở trang công khai và trong Modal tạo bài viết.
+
+#### 2. `GET /api/categories/{id}`
+- **Mục đích**: Lấy chi tiết thông tin của 1 danh mục theo mã số `id`.
+- **Đầu ra**: `200 OK` (chi tiết danh mục) hoặc `404 Not Found`.
+
+#### 3. `POST /api/categories`
+- **Mục đích**: Tạo một chuyên mục tin tức mới (Dành cho Staff).
+- **Tham số**: `[FromBody] CategoryCreateUpdateDto dto` (CategoryName, CategoryDesciption, ParentCategoryId, IsActive).
+- **Mã phản hồi**: `201 CreatedAtAction` khi tạo thành công.
+- **Tác dụng**: Cho phép mở rộng thêm các mảng tin tức mới trong trường học (ví dụ: Tin tuyển sinh, Tin học thuật, Hoạt động CLB).
+
+#### 4. `PUT /api/categories/{id}`
+- **Mục đích**: Cập nhật tên chuyên mục, mô tả, thay đổi danh mục cha hoặc bật/tắt trạng thái hoạt động (`IsActive`).
+- **Đầu ra**: `200 OK` khi thành công, `404 Not Found` nếu không tìm thấy ID.
+
+#### 5. `DELETE /api/categories/{id}`
+- **Mục đích**: Xóa một chuyên mục khỏi hệ thống.
+- **Tham số**: `[FromRoute] short id`.
+- **Mã phản hồi**:
+  - `200 OK`: Xóa thành công.
+  - `400 Bad Request`: **BỊ CHẶN XÓA DO RÀNG BUỘC TOÀN VẸN**.
+- **Ý nghĩa ràng buộc sống còn**:
+  - Kiểm tra xem danh mục có bài viết nào không (`HasNewsArticlesAsync(id)`).
+  - Nếu danh mục đang chứa bài viết tin tức hoặc đang có các chuyên mục con trực thuộc, API sẽ **chặn xóa ngay lập tức** với thông báo: *"Cannot delete this category because it contains news articles."*
+  - **Tác dụng**: Đảm bảo không làm mất liên kết hoặc làm hỏng dữ liệu của các bài viết đang thuộc chuyên mục đó.
 
 ---
 
-### 3.5. `TagsController` (`Route: api/tags`)
-*Kế thừa `ODataController` - Quản lý danh mục các hashtag / thẻ phân loại bài viết.*
+### 3.4. `NewsArticlesController` (`Route: api/newsarticles` & `odata/NewsArticles`)
+*Kế thừa `ODataController` - Controller trung tâm quan trọng nhất, xử lý toàn bộ vòng đời tin tức và mối quan hệ n-n với Tags.*
 
-| Phương thức | HTTP Method & Route | Tham số đầu vào | Tác dụng & Chi tiết xử lý |
-| :--- | :--- | :--- | :--- |
-| `GetTags` | `GET api/tags`<br>`[EnableQuery]` | *(OData query string)* | Lấy danh sách toàn bộ các Tag có trong hệ thống (dùng để đổ dữ liệu vào checkbox chọn Tag ở Modal tạo/sửa bài viết). |
-| `GetTag` | `GET api/tags/{id}` | `int id` | Lấy chi tiết 1 Tag theo mã `TagId`. |
-| `CreateTag` | `POST api/tags` | `[FromBody] Tag tag` | Tạo mới một Tag. |
-| `UpdateTag` | `PUT api/tags/{id}` | `int id`, `[FromBody] Tag tag` | Cập nhật tên thẻ `TagName` hoặc ghi chú `Note`. |
-| `DeleteTag` | `DELETE api/tags/{id}` | `int id` | Xóa một Tag khỏi hệ thống. |
+#### 1. `GET /api/newsarticles` (và `GET /odata/NewsArticles`, `GET /odata/NewsArticles/$count`)
+- **Mục đích**: Truy vấn và lọc danh sách bài viết đa tiêu chí, hỗ trợ OData v8.
+- **Tham số**:
+  - `activeOnly` (bool?): Lọc bài viết đã xuất bản (`NewsStatus = true`) dành cho khách xem tin.
+  - `keyword` (string?): Tìm kiếm từ khóa xuất hiện trong Tiêu đề (Headline), Tựa đề phụ (NewsTitle) hoặc Nội dung (NewsContent).
+  - `categoryId` (short?): Lọc theo chuyên mục cụ thể.
+  - `tagId` (int?): Lọc các bài viết được gắn thẻ hashtag cụ thể.
+  - Hỗ trợ toàn bộ tham số OData: `$filter`, `$orderby`, `$select`, `$top`, `$skip`.
+- **Đầu ra**: `200 OK` kèm danh sách DTO đã bao gồm tên chuyên mục, tên tác giả và danh sách các Tags đính kèm.
+- **Tác dụng**: Cung cấp dữ liệu trực tiếp cho trang chủ Public News, thanh công cụ tìm kiếm và trang quản trị của Staff.
+
+#### 2. `GET /api/newsarticles/{id}`
+- **Mục đích**: Đọc toàn bộ nội dung chi tiết của một bài viết theo mã `id` (chuỗi ký tự, ví dụ: `"1"`, `"NA001"`).
+- **Đầu ra**: `200 OK` (chi tiết bài viết) hoặc `404 Not Found`.
+- **Tác dụng**: Cung cấp nội dung đầy đủ cho Popup Modal "Read More" ở trang chủ hoặc Modal "Edit Article" của Staff.
+
+#### 3. `GET /api/newsarticles/author/{authorId}`
+- **Mục đích**: Lấy toàn bộ lịch sử các bài viết được tạo bởi một tác giả cụ thể.
+- **Tham số**: `[FromRoute] short authorId` (Mã số tài khoản nhân viên).
+- **Đầu ra**: `200 OK` kèm danh sách bài viết sắp xếp giảm dần theo ngày tạo (`CreatedDate Descending`).
+- **Tác dụng**: Phục vụ riêng cho màn hình **"My News History"** của Staff, giúp nhân viên xem lại toàn bộ các bài viết mình đã chấp bút.
+
+#### 4. `POST /api/newsarticles`
+- **Mục đích**: Đăng tải / tạo một bài viết tin tức mới (Dành cho Staff).
+- **Tham số**:
+  - `[FromBody] NewsArticleCreateUpdateDto dto`: Mã bài viết (`NewsArticleId`), Tiêu đề (`Headline`), Nội dung (`NewsContent`), Chuyên mục (`CategoryId`), Trạng thái (`NewsStatus`), Nguồn tin (`NewsSource`), Danh sách Tag IDs (`TagIds`).
+  - `[FromQuery] short? createdById`: Mã tài khoản của nhân viên đang đăng bài.
+- **Mã phản hồi**:
+  - `201 CreatedAtAction`: Tạo thành công.
+  - `409 Conflict`: Trùng mã bài viết `NewsArticleId`.
+  - `400 Bad Request`: Thiếu thông tin bắt buộc hoặc `CategoryId` không tồn tại trong CSDL.
+- **Ý nghĩa & Tác dụng**:
+  - Tự động gán thời điểm tạo `CreatedDate = DateTime.Now` và người tạo `CreatedById`.
+  - Tự động lưu các bản ghi liên kết n-n vào bảng trung gian `NewsTag` cho tất cả các tag được nhân viên tích chọn.
+
+#### 5. `PUT /api/newsarticles/{id}`
+- **Mục đích**: Chỉnh sửa bài viết hiện có và đồng bộ lại danh sách thẻ Tag (Dành cho Staff).
+- **Tham số**: `[FromRoute] string id`, `[FromBody] NewsArticleCreateUpdateDto dto`, `[FromQuery] short? updatedById`.
+- **Mã phản hồi**: `200 OK` (thành công), `404 Not Found` (không tìm thấy bài viết).
+- **Tác dụng**:
+  - Cập nhật nội dung, tiêu đề, trạng thái xuất bản, ghi nhận người sửa cuối cùng (`UpdatedById`) và thời điểm sửa (`ModifiedDate = DateTime.Now`).
+  - **Đồng bộ hóa Tags thông minh**: Tự động so sánh danh sách tag mới gửi lên với tag cũ trong CSDL: Tag nào bị bỏ chọn sẽ xóa khỏi bảng `NewsTag`, Tag nào mới tích chọn sẽ được chèn thêm vào.
+
+#### 6. `DELETE /api/newsarticles/{id}`
+- **Mục đích**: Xóa vĩnh viễn bài viết khỏi hệ thống.
+- **Tham số**: `[FromRoute] string id`.
+- **Mã phản hồi**: `200 OK` (thành công), `404 Not Found` (không tồn tại).
+- **Tác dụng**: Tự động dọn sạch tất cả các liên kết trong bảng phụ `NewsTag` trước, sau đó xóa bản ghi chính trong bảng `NewsArticle` để không bị lỗi xung đột khóa ngoại.
+
+---
+
+### 3.5. `TagsController` (`Route: api/tags` & `odata/Tags`)
+*Kế thừa `ODataController` - Quản lý kho nhãn dán / Hashtag phân loại tin tức.*
+
+#### 1. `GET /api/tags` (và `GET /odata/Tags`)
+- **Mục đích**: Lấy danh mục tất cả các Tag đang có trong hệ thống (như `#Education`, `#Technology`, `#Research`, `#Innovation`).
+- **Đầu ra**: `200 OK` kèm danh sách Tag (hỗ trợ OData).
+- **Tác dụng**: Cung cấp danh sách các checkbox thẻ Tag để Staff tích chọn khi tạo hoặc sửa bài viết tin tức.
+
+#### 2. `GET /api/tags/{id}`, `POST /api/tags`, `PUT /api/tags/{id}`, `DELETE /api/tags/{id}`
+- **Mục đích**: Các phương thức CRUD cơ bản cho thẻ Tag (Xem chi tiết, Thêm mới, Sửa ghi chú/tên tag, Xóa tag).
 
 ---
 
 ### 3.6. `ReportsController` (`Route: api/reports`)
-*Phụ trách chức năng thống kê báo cáo của quản trị viên (Admin Report).*
+*Phụ trách phân hệ Báo cáo Thống kê dành riêng cho Quản trị viên (Admin Report).*
 
-| Phương thức | HTTP Method & Route | Tham số đầu vào | Tác dụng & Chi tiết xử lý |
-| :--- | :--- | :--- | :--- |
-| `GetStatistics` | `GET api/reports/statistics` | `[FromQuery] DateTime startDate`<br>`[FromQuery] DateTime endDate` | **Chức năng báo cáo bài viết**: <br>1. Kiểm tra tính hợp lệ: `startDate` phải nhỏ hơn hoặc bằng `endDate`.<br>2. Lọc tất cả các bài viết có `CreatedDate` nằm trong khoảng từ `[startDate 00:00:00]` đến `[endDate 23:59:59]`.<br>3. Bắt buộc sắp xếp **giảm dần theo ngày tạo (`CreatedDate Descending`)** theo đúng yêu cầu đề bài.<br>4. Trả về `ReportStatisticDto` bao gồm: Tổng số bài viết (`TotalArticles`) và Danh sách chi tiết từng bài viết. |
+#### `GET /api/reports/statistics`
+- **Mục đích**: Tạo báo cáo thống kê số lượng và danh sách bài viết trong một khoảng thời gian nhất định theo đúng yêu cầu đề bài Assignment 01.
+- **Tham số đầu vào**:
+  - `[FromQuery] DateTime startDate`: Ngày bắt đầu thống kê.
+  - `[FromQuery] DateTime endDate`: Ngày kết thúc thống kê.
+- **Mã phản hồi**:
+  - `200 OK`: Trả về đối tượng `ReportStatisticDto` gồm: `StartDate`, `EndDate`, `TotalArticles` (tổng số bài), và danh sách `Articles` chi tiết.
+  - `400 Bad Request`: `startDate` lớn hơn `endDate` (`"StartDate must be earlier than or equal to EndDate."`).
+- **Ý nghĩa & Tác dụng thực tế**:
+  1. **Bảo đảm chuẩn xác mốc thời gian**: Truy vấn CSDL từ đầu ngày bắt đầu (`startDate.Date` - 00:00:00) đến cuối ngày kết thúc (`endDate.Date.AddDays(1).AddTicks(-1)` - 23:59:59).
+  2. **Tuân thủ quy định sắp xếp của đề bài**: Kết quả bắt buộc phải được sắp xếp **giảm dần theo ngày tạo (`CreatedDate Descending`)**.
+  3. **Đa dạng hóa đầu ra**: Dữ liệu từ API này được Client sử dụng để hiển thị các thẻ KPI thống kê trên giao diện Web, đồng thời là nguồn cấp dữ liệu cho tính năng **Xuất báo cáo ra file Excel (.xlsx)** bằng ClosedXML.
 
 ---
 
@@ -194,6 +337,11 @@ sequenceDiagram
   - Quản lý bài viết tin tức (News Article Management) + Chọn gán Tags qua Modal.
   - Xem lịch sử bài viết của chính mình (My News History).
   - Quản lý trang cá nhân (Profile) và đổi mật khẩu.
+- **Giảng viên (Lecturer - Role 2)**:
+  - Thành viên nội bộ trường đại học (đăng nhập bằng tài khoản trong CSDL có `AccountRole = 2`).
+  - Xem tin tức đại học tại Public News Portal.
+  - Quản lý trang cá nhân (Profile) và đổi mật khẩu tài khoản của chính mình (`/Staff/Profile`).
+  - Được bảo vệ an toàn phân quyền: Không được phép truy cập trái phép vào trang quản trị bài viết/danh mục của Staff hay trang tài khoản của Admin (nếu cố tình vào sẽ bị điều hướng an toàn về trang chủ kèm thông báo từ chối quyền truy cập).
 - **Quản trị viên (Admin)**:
   - Quản lý toàn bộ tài khoản hệ thống (SystemAccount Management) qua Modal Popup (tự động gợi ý Account ID theo thứ tự).
   - Thống kê báo cáo bài viết theo khoảng ngày (Report Statistics).

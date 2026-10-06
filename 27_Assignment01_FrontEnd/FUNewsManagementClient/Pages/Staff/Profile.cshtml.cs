@@ -24,7 +24,7 @@ namespace FUNewsManagementClient.Pages.Staff
         public async Task<IActionResult> OnGetAsync()
         {
             var user = HttpContext.Session.GetObject<LoginResponse>("CurrentUser");
-            if (user == null || !string.Equals(user.Role, "Staff", StringComparison.OrdinalIgnoreCase))
+            if (user == null)
             {
                 return RedirectToPage("/Login");
             }
@@ -43,7 +43,7 @@ namespace FUNewsManagementClient.Pages.Staff
         public async Task<IActionResult> OnPostAsync()
         {
             var user = HttpContext.Session.GetObject<LoginResponse>("CurrentUser");
-            if (user == null || !string.Equals(user.Role, "Staff", StringComparison.OrdinalIgnoreCase))
+            if (user == null)
             {
                 return RedirectToPage("/Login");
             }

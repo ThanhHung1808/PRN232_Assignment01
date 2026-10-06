@@ -28,9 +28,14 @@ namespace FUNewsManagementClient.Pages.Admin.Accounts
         public async Task<IActionResult> OnGetAsync()
         {
             var user = HttpContext.Session.GetObject<LoginResponse>("CurrentUser");
-            if (user == null || !string.Equals(user.Role, "Admin", StringComparison.OrdinalIgnoreCase))
+            if (user == null)
             {
                 return RedirectToPage("/Login");
+            }
+            if (!string.Equals(user.Role, "Admin", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["ErrorMessage"] = "Access denied. Admin role required.";
+                return RedirectToPage("/Index");
             }
 
             var res = await _apiService.GetAsync<List<AccountResponseDto>>("api/accounts");
