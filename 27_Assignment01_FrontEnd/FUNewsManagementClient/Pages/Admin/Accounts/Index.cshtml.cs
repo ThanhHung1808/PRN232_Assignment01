@@ -23,6 +23,8 @@ namespace FUNewsManagementClient.Pages.Admin.Accounts
         [BindProperty]
         public AccountCreateUpdateDto AccountInput { get; set; } = new();
 
+        public short NextAccountId { get; set; } = 1;
+
         public async Task<IActionResult> OnGetAsync()
         {
             var user = HttpContext.Session.GetObject<LoginResponse>("CurrentUser");
@@ -34,7 +36,11 @@ namespace FUNewsManagementClient.Pages.Admin.Accounts
             var res = await _apiService.GetAsync<List<AccountResponseDto>>("api/accounts");
             if (res.IsSuccess && res.Data != null)
             {
-                var query = res.Data.AsEnumerable();
+                var allAccounts = res.Data;
+                NextAccountId = allAccounts.Any() ? (short)(allAccounts.Max(a => a.AccountId) + 1) : (short)1;
+                AccountInput.AccountId = NextAccountId;
+
+                var query = allAccounts.AsEnumerable();
                 if (!string.IsNullOrWhiteSpace(Keyword))
                 {
                     var kw = Keyword.Trim().ToLower();

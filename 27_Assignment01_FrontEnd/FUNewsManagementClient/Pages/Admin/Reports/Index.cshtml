@@ -23,9 +23,19 @@
             <input type="date" name="EndDate" class="form-control" value="@Model.EndDate.ToString("yyyy-MM-dd")" required />
         </div>
         <div class="col-md-4 d-flex gap-2">
-            <button type="submit" class="btn btn-primary w-100">
+            <button type="submit" class="btn btn-primary flex-grow-1">
                 <i class="bi bi-bar-chart-fill me-1"></i> Generate Report
             </button>
+            @if (Model.ReportData != null && Model.ReportData.Articles.Any())
+            {
+                <a asp-page-handler="ExportExcel" 
+                   asp-route-startDate="@Model.StartDate.ToString("yyyy-MM-dd")" 
+                   asp-route-endDate="@Model.EndDate.ToString("yyyy-MM-dd")" 
+                   class="btn btn-success text-nowrap" 
+                   title="Export to Excel (.xlsx)">
+                    <i class="bi bi-file-earmark-excel-fill me-1"></i> Export Excel
+                </a>
+            }
         </div>
     </form>
 </div>
@@ -64,9 +74,20 @@
     <div class="card card-modern">
         <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
             <h5 class="fw-bold text-dark mb-0">Detailed Article Records</h5>
-            <span class="badge bg-light text-primary border border-primary-subtle px-3 py-2">
-                @Model.ReportData.Articles.Count records
-            </span>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-light text-primary border border-primary-subtle px-3 py-2">
+                    @Model.ReportData.Articles.Count records
+                </span>
+                @if (Model.ReportData.Articles.Any())
+                {
+                    <a asp-page-handler="ExportExcel" 
+                       asp-route-startDate="@Model.StartDate.ToString("yyyy-MM-dd")" 
+                       asp-route-endDate="@Model.EndDate.ToString("yyyy-MM-dd")" 
+                       class="btn btn-sm btn-outline-success">
+                        <i class="bi bi-file-earmark-excel me-1"></i> Export .xlsx
+                    </a>
+                }
+            </div>
         </div>
         <div class="table-responsive">
             <table class="table table-custom mb-0">

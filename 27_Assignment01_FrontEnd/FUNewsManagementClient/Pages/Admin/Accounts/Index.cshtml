@@ -127,8 +127,9 @@
                 <div class="modal-body p-4">
                     <div class="mb-3">
                         <label class="form-label fw-semibold small">Account ID <span class="text-danger">*</span></label>
-                        <input asp-for="AccountInput.AccountId" type="number" class="form-control" placeholder="Unique numeric ID (e.g. 10)" required />
+                        <input asp-for="AccountInput.AccountId" id="createAccountId" type="number" class="form-control" value="@Model.NextAccountId" required />
                         <span asp-validation-for="AccountInput.AccountId" class="text-danger small"></span>
+                        <div class="form-text small text-muted"><i class="bi bi-magic me-1"></i>Auto-suggested next available ID: <strong>#@Model.NextAccountId</strong></div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold small">Account Name <span class="text-danger">*</span></label>
@@ -234,6 +235,16 @@
 
 @section Scripts {
     <script>
+        const createModal = document.getElementById('createModal');
+        if (createModal) {
+            createModal.addEventListener('show.bs.modal', function () {
+                const idInput = document.getElementById('createAccountId');
+                if (idInput) {
+                    idInput.value = '@Model.NextAccountId';
+                }
+            });
+        }
+
         const editModal = document.getElementById('editModal');
         if (editModal) {
             editModal.addEventListener('show.bs.modal', function (event) {
