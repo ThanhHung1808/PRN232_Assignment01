@@ -85,6 +85,17 @@ namespace FUNewsManagementAPI.DAO
         {
             using var context = new FUNewsManagementDbContext();
 
+            // Auto-assign next sequential ID if empty or "0" (similar to SystemAccount)
+            if (string.IsNullOrWhiteSpace(article.NewsArticleId) || article.NewsArticleId == "0")
+            {
+                var allIds = await context.NewsArticles.Select(n => n.NewsArticleId).ToListAsync();
+                int maxId = allIds
+                    .Select(id => int.TryParse(id, out int n) ? n : 0)
+                    .DefaultIfEmpty(0)
+                    .Max();
+                article.NewsArticleId = (maxId + 1).ToString();
+            }
+
             // 1. Check duplicate NewsArticleId
             var existing = await context.NewsArticles.FindAsync(article.NewsArticleId);
             if (existing != null)

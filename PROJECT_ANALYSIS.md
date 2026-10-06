@@ -242,6 +242,8 @@ Controller trong kiến trúc ASP.NET Core Web API là **Tầng điều khiển 
   - `409 Conflict`: Trùng mã bài viết `NewsArticleId`.
   - `400 Bad Request`: Thiếu thông tin bắt buộc hoặc `CategoryId` không tồn tại trong CSDL.
 - **Ý nghĩa & Tác dụng**:
+  - **Tự động gợi ý & tính toán mã bài viết tiếp theo (Next Article ID)**: Client tự động tính toán mã số tiếp theo dạng tăng dần (ví dụ: đang có ID 1..5 thì tự nạp ID #6) tương tự cơ chế của Account ID, giúp nhân viên không phải tự đoán mã ID tránh trùng lặp.
+  - Phía Backend DAO cũng tích hợp cơ chế tự động sinh ID tiếp theo nếu Client gửi ID trống hoặc "0".
   - Tự động gán thời điểm tạo `CreatedDate = DateTime.Now` và người tạo `CreatedById`.
   - Tự động lưu các bản ghi liên kết n-n vào bảng trung gian `NewsTag` cho tất cả các tag được nhân viên tích chọn.
 

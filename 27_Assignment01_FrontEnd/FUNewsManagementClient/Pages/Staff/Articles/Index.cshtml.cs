@@ -29,6 +29,8 @@ namespace FUNewsManagementClient.Pages.Staff.Articles
         [BindProperty(SupportsGet = true)]
         public bool? Status { get; set; }
 
+        public string NextArticleId { get; set; } = "1";
+
         [BindProperty]
         public NewsArticleCreateUpdateDto ArticleInput { get; set; } = new();
 
@@ -65,6 +67,23 @@ namespace FUNewsManagementClient.Pages.Staff.Articles
             var artRes = await _apiService.GetAsync<List<NewsArticleResponseDto>>(query);
             if (artRes.IsSuccess && artRes.Data != null) Articles = artRes.Data;
 
+            // Calculate auto-suggested next Article ID
+            var allArtsRes = await _apiService.GetAsync<List<NewsArticleResponseDto>>("api/newsarticles");
+            var artList = (allArtsRes.IsSuccess && allArtsRes.Data != null) ? allArtsRes.Data : Articles;
+            if (artList.Any())
+            {
+                int maxId = artList
+                    .Select(a => int.TryParse(a.NewsArticleId, out int n) ? n : 0)
+                    .DefaultIfEmpty(0)
+                    .Max();
+                NextArticleId = (maxId > 0 ? maxId + 1 : artList.Count + 1).ToString();
+            }
+            else
+            {
+                NextArticleId = "1";
+            }
+            ArticleInput.NewsArticleId = NextArticleId;
+
             return Page();
         }
 
@@ -78,9 +97,18 @@ namespace FUNewsManagementClient.Pages.Staff.Articles
 
             ArticleInput.TagIds = SelectedTagIds;
 
-            if (string.IsNullOrWhiteSpace(ArticleInput.NewsArticleId) || string.IsNullOrWhiteSpace(ArticleInput.Headline))
+            if (string.IsNullOrWhiteSpace(ArticleInput.NewsArticleId))
             {
-                TempData["ErrorMessage"] = "Validation failed. Article ID and Headline are mandatory.";
+                var allArtsRes = await _apiService.GetAsync<List<NewsArticleResponseDto>>("api/newsarticles");
+                int maxId = (allArtsRes.IsSuccess && allArtsRes.Data != null)
+                    ? allArtsRes.Data.Select(a => int.TryParse(a.NewsArticleId, out int n) ? n : 0).DefaultIfEmpty(0).Max()
+                    : 0;
+                ArticleInput.NewsArticleId = (maxId + 1).ToString();
+            }
+
+            if (string.IsNullOrWhiteSpace(ArticleInput.Headline))
+            {
+                TempData["ErrorMessage"] = "Validation failed. Headline is mandatory.";
                 return RedirectToPage();
             }
 

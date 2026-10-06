@@ -155,7 +155,9 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label fw-semibold small">Article ID <span class="text-danger">*</span></label>
-                            <input asp-for="ArticleInput.NewsArticleId" class="form-control" placeholder="e.g. NA101" required />
+                            <input asp-for="ArticleInput.NewsArticleId" id="createArticleId" class="form-control" value="@Model.NextArticleId" required />
+                            <span asp-validation-for="ArticleInput.NewsArticleId" class="text-danger small"></span>
+                            <div class="form-text small text-muted"><i class="bi bi-magic me-1"></i>Auto-suggested next ID: <strong>#@Model.NextArticleId</strong></div>
                         </div>
                         <div class="col-md-8">
                             <label class="form-label fw-semibold small">Headline <span class="text-danger">*</span></label>
@@ -307,6 +309,16 @@
 
 @section Scripts {
     <script>
+        const createArtModal = document.getElementById('createArticleModal');
+        if (createArtModal) {
+            createArtModal.addEventListener('show.bs.modal', function () {
+                const idInput = document.getElementById('createArticleId');
+                if (idInput) {
+                    idInput.value = '@Model.NextArticleId';
+                }
+            });
+        }
+
         const editArtModal = document.getElementById('editArticleModal');
         if (editArtModal) {
             editArtModal.addEventListener('show.bs.modal', function (event) {
