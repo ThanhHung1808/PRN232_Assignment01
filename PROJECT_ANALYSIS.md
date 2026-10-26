@@ -26,7 +26,9 @@ Dự án **FU News Management System** là hệ thống quản lý tin tức tr�
 
 ```
 Assignment/
-├── 27_Assignment01_BackEnd/       # Solution Backend Web API
+├── 27_Assignment02_BackEnd/       # Solution Backend Web API
+│   ├── 27_LeThanhHung_PRN232_A02_BE.sln
+│   ├── 27_Assignment02_BackEnd.sln
 │   └── FUNewsManagementAPI/       # Dự án Web API duy nhất (Single Project Pattern)
 │       ├── Controllers/           # Tiếp nhận HTTP Request & OData endpoints
 │       ├── DAO/                   # Xử lý truy vấn CSDL (Singleton Pattern) + DbContext
@@ -34,10 +36,12 @@ Assignment/
 │       ├── Models/                # Entity Framework Core Data Entities
 │       └── Repositories/          # Interface & Implementation (Repository Pattern)
 │
-├── 27_Assignment01_FrontEnd/      # Solution Frontend Client
+├── 27_Assignment02_FrontEnd/      # Solution Frontend Client
+│   ├── 27_LeThanhHung_PRN232_A02_FE.sln
+│   ├── 27_Assignment02_FrontEnd.sln
 │   └── FUNewsManagementClient/    # Ứng dụng Razor Pages tiêu thụ API qua HttpClient
 │       ├── Pages/                 # Giao diện người dùng (Public, Admin, Staff)
-│       ├── Services/              # ApiService gọi Backend API
+│       ├── Services/              # ApiService gọi Backend API (kèm Bearer token)
 │       ├── Helpers/               # Quản lý Session & Cookie
 │       └── DTOs/                  # DTO độc lập phía Client (Loose Coupling)
 │

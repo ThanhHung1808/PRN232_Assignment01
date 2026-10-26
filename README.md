@@ -7,19 +7,23 @@ A secure full-stack News Management application built with **.NET 8 (ASP.NET Cor
 ## 🏗 Solutions & Architecture
 
 - **Unified Solution**: `27_LeThanhHung_Assignment02.sln` (chứa cả Backend API và Frontend Client)
-- **Backend Solution**: `27_LeThanhHung_PRN232_A02_BE.sln` (chứa `FUNewsManagementAPI`)
-- **Frontend Solution**: `27_LeThanhHung_PRN232_A02_FE.sln` (chứa `FUNewsManagementClient`)
+- **Backend Solution**: `27_Assignment02_BackEnd/27_LeThanhHung_PRN232_A02_BE.sln` (hoặc `27_Assignment02_BackEnd.sln`)
+- **Frontend Solution**: `27_Assignment02_FrontEnd/27_LeThanhHung_PRN232_A02_FE.sln` (hoặc `27_Assignment02_FrontEnd.sln`)
 
 ```
 Assignment/
-├── 27_Assignment01_BackEnd/       # Backend Solution
+├── 27_Assignment02_BackEnd/       # Backend Solution Folder
+│   ├── 27_LeThanhHung_PRN232_A02_BE.sln
+│   ├── 27_Assignment02_BackEnd.sln
 │   └── FUNewsManagementAPI/       # Web API project with OData & JWT Security
 │       ├── Controllers/           # Accounts, Categories, NewsArticles, Tags, Auth, Reports
 │       ├── DAO/                   # Singleton Data Access Objects & DbContext
 │       ├── DTOs/                  # Data Transfer Objects
 │       ├── Models/                # EF Core Entities
 │       └── Repositories/          # Repository Interfaces & Implementations
-├── 27_Assignment01_FrontEnd/      # Frontend Solution
+├── 27_Assignment02_FrontEnd/      # Frontend Solution Folder
+│   ├── 27_LeThanhHung_PRN232_A02_FE.sln
+│   ├── 27_Assignment02_FrontEnd.sln
 │   └── FUNewsManagementClient/    # Razor Pages Web Application
 │       ├── Pages/                 # Public, Admin, and Staff management pages
 │       ├── Services/              # ApiService with Bearer Token attachment
@@ -35,18 +39,18 @@ Assignment/
 1. Open SQL Server Management Studio (SSMS).
 2. Execute the script [`FUNewsManagement.sql`](./FUNewsManagement.sql) to create the `FUNewsManagement` database and initial seed data.
 3. If your SQL Server connection string differs from default (`Server=.;Database=FUNewsManagement;Trusted_Connection=True;TrustServerCertificate=True;`), update it in:
-   - `27_Assignment01_BackEnd/FUNewsManagementAPI/appsettings.json`
+   - `27_Assignment02_BackEnd/FUNewsManagementAPI/appsettings.json`
 
 ### 2. Run Backend API
 ```bash
-cd 27_Assignment01_BackEnd/FUNewsManagementAPI
+cd 27_Assignment02_BackEnd/FUNewsManagementAPI
 dotnet run --urls "http://localhost:5000;https://localhost:7000"
 ```
 - Swagger UI (có nút Authorize nhập JWT Token): `http://localhost:5000/swagger`
 
 ### 3. Run Frontend Client
 ```bash
-cd 27_Assignment01_FrontEnd/FUNewsManagementClient
+cd 27_Assignment02_FrontEnd/FUNewsManagementClient
 dotnet run --urls "http://localhost:5001;https://localhost:7001"
 ```
 - Open browser: `http://localhost:5001`
