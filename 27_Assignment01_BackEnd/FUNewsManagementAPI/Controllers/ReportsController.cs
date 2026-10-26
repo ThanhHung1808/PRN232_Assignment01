@@ -1,11 +1,13 @@
 using FUNewsManagementAPI.DTOs;
 using FUNewsManagementAPI.Repositories.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FUNewsManagementAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     public class ReportsController : ControllerBase
     {
         private readonly INewsArticleRepository _articleRepository;

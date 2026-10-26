@@ -180,25 +180,37 @@ namespace FUNewsManagementClient.Services
         private ApiResponse<T> HandleError<T>(HttpResponseMessage response, string content)
         {
             string message = "An error occurred.";
-            try
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                using var doc = JsonDocument.Parse(content);
-                if (doc.RootElement.TryGetProperty("message", out var msgProp))
-                {
-                    message = msgProp.GetString() ?? message;
-                }
-                else if (doc.RootElement.TryGetProperty("title", out var titleProp))
-                {
-                    message = titleProp.GetString() ?? message;
-                }
-                else
-                {
-                    message = content;
-                }
+                message = "Unauthorized: Your session has expired or token is invalid. Please sign in again.";
             }
-            catch
+            else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
             {
-                if (!string.IsNullOrWhiteSpace(content)) message = content;
+                message = "Forbidden: Your account does not have permission to access this resource.";
+            }
+            else
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(content);
+                    if (doc.RootElement.TryGetProperty("message", out var msgProp))
+                    {
+                        message = msgProp.GetString() ?? message;
+                    }
+                    else if (doc.RootElement.TryGetProperty("title", out var titleProp))
+                    {
+                        message = titleProp.GetString() ?? message;
+                    }
+                    else
+                    {
+                        message = content;
+                    }
+                }
+                catch
+                {
+                    if (!string.IsNullOrWhiteSpace(content)) message = content;
+                }
             }
 
             return new ApiResponse<T>

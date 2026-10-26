@@ -1,6 +1,6 @@
 # BÁO CÁO PHÂN TÍCH CHI TIẾT DỰ ÁN FU NEWS MANAGEMENT SYSTEM
-> **Môn học**: PRN232 - Assignment 01  
-> **Nền tảng**: .NET 8 (ASP.NET Core Web API + OData v8 + Entity Framework Core 8 + ASP.NET Core Razor Pages)  
+> **Môn học**: PRN232 - Assignment 02 (Security Web API with JWT & OData)  
+> **Nền tảng**: .NET 8 (ASP.NET Core Web API + OData v8 + JWT Bearer Authentication + Entity Framework Core 8 + ASP.NET Core Razor Pages)  
 > **Tác giả**: Lê Thanh Hùng  
 
 ---

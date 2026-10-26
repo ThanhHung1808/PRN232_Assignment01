@@ -1,15 +1,19 @@
-# FU News Management System - PRN232 Assignment 01
+# FU News Management System - PRN232 Assignment 02 (Security Web API)
 
-A full-stack News Management application built with **.NET 8 (ASP.NET Core Web API with OData v8)** and **ASP.NET Core Razor Pages**.
+A secure full-stack News Management application built with **.NET 8 (ASP.NET Core Web API with OData v8 & JWT Authentication/Authorization)** and **ASP.NET Core Razor Pages**.
 
 ---
 
-## 🏗 Project Architecture
+## 🏗 Solutions & Architecture
+
+- **Unified Solution**: `27_LeThanhHung_Assignment02.sln` (chứa cả Backend API và Frontend Client)
+- **Backend Solution**: `27_LeThanhHung_PRN232_A02_BE.sln` (chứa `FUNewsManagementAPI`)
+- **Frontend Solution**: `27_LeThanhHung_PRN232_A02_FE.sln` (chứa `FUNewsManagementClient`)
 
 ```
 Assignment/
 ├── 27_Assignment01_BackEnd/       # Backend Solution
-│   └── FUNewsManagementAPI/       # Single Web API project with OData
+│   └── FUNewsManagementAPI/       # Web API project with OData & JWT Security
 │       ├── Controllers/           # Accounts, Categories, NewsArticles, Tags, Auth, Reports
 │       ├── DAO/                   # Singleton Data Access Objects & DbContext
 │       ├── DTOs/                  # Data Transfer Objects
@@ -18,7 +22,7 @@ Assignment/
 ├── 27_Assignment01_FrontEnd/      # Frontend Solution
 │   └── FUNewsManagementClient/    # Razor Pages Web Application
 │       ├── Pages/                 # Public, Admin, and Staff management pages
-│       ├── Services/              # Backend API consumer client
+│       ├── Services/              # ApiService with Bearer Token attachment
 │       └── DTOs/                  # Independent Client DTOs
 └── FUNewsManagement.sql           # Database setup script
 ```
@@ -38,7 +42,7 @@ Assignment/
 cd 27_Assignment01_BackEnd/FUNewsManagementAPI
 dotnet run --urls "http://localhost:5000;https://localhost:7000"
 ```
-- Swagger UI: `http://localhost:5000/swagger`
+- Swagger UI (có nút Authorize nhập JWT Token): `http://localhost:5000/swagger`
 
 ### 3. Run Frontend Client
 ```bash
@@ -53,6 +57,8 @@ dotnet run --urls "http://localhost:5001;https://localhost:7001"
 
 | Role | Email | Password | Access / Privileges |
 | :--- | :--- | :--- | :--- |
-| **Admin** | `admin@FUNewsManagementSystem.org` | `admin` | Account Management, Article Statistics & Reports |
-| **Staff** | `IsabellaDavid@FUNewsManagement.org` | `staff1` | Category Management, News Article CRUD, Profile, My Articles |
-| **Public** | *(No login required)* | - | View active articles, search, filter by category |
+| **Admin** | `admin@FUNewsManagementSystem.org` | `@@abc123@@` *(hoặc `admin`)* | Account Management, Article Statistics & Reports, Export Excel |
+| **Staff** | `IsabellaDavid@FUNewsManagement.org` | `@1` | Category Management, News Article CRUD & Tags, Profile, My Articles |
+| **Lecturer** | `EmmaWilliam@FUNewsManagement.org` | `@1` | View public articles, View & Edit Profile, Change Password |
+| **Public** | *(No login required)* | - | View active articles, search, filter by category & tag |
+
