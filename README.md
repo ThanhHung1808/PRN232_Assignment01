@@ -6,28 +6,35 @@ A secure full-stack News Management application built with **.NET 8 (ASP.NET Cor
 
 ## 🏗 Solutions & Architecture
 
-- **Unified Solution**: `27_LeThanhHung_Assignment02.sln` (chứa cả Backend API và Frontend Client)
-- **Backend Solution**: `27_Assignment02_BackEnd/27_LeThanhHung_PRN232_A02_BE.sln` (hoặc `27_Assignment02_BackEnd.sln`)
-- **Frontend Solution**: `27_Assignment02_FrontEnd/27_LeThanhHung_PRN232_A02_FE.sln` (hoặc `27_Assignment02_FrontEnd.sln`)
+Dự án chứa đầy đủ cả **Assignment 01** (Basic Web API & OData) và **Assignment 02** (Security Web API & JWT Auth):
+
+- **Assignment 01**:
+  - Unified Solution: `27_LeThanhHung_Assignment01.sln`
+  - Backend Solution: `27_Assignment01_BackEnd/27_Assignment01_BackEnd.sln`
+  - Frontend Solution: `27_Assignment01_FrontEnd/27_Assignment01_FrontEnd.sln`
+- **Assignment 02**:
+  - Unified Solution: `27_LeThanhHung_Assignment02.sln`
+  - Backend Solution: `27_Assignment02_BackEnd/27_LeThanhHung_PRN232_A02_BE.sln` (hoặc `27_Assignment02_BackEnd.sln`)
+  - Frontend Solution: `27_Assignment02_FrontEnd/27_LeThanhHung_PRN232_A02_FE.sln` (hoặc `27_Assignment02_FrontEnd.sln`)
 
 ```
 Assignment/
-├── 27_Assignment02_BackEnd/       # Backend Solution Folder
+├── 27_Assignment01_BackEnd/       # Assignment 01 - Backend
+│   ├── 27_Assignment01_BackEnd.sln
+│   └── FUNewsManagementAPI/
+├── 27_Assignment01_FrontEnd/      # Assignment 01 - Frontend
+│   ├── 27_Assignment01_FrontEnd.sln
+│   └── FUNewsManagementClient/
+├── 27_Assignment02_BackEnd/       # Assignment 02 - Backend (JWT + OData)
 │   ├── 27_LeThanhHung_PRN232_A02_BE.sln
 │   ├── 27_Assignment02_BackEnd.sln
-│   └── FUNewsManagementAPI/       # Web API project with OData & JWT Security
-│       ├── Controllers/           # Accounts, Categories, NewsArticles, Tags, Auth, Reports
-│       ├── DAO/                   # Singleton Data Access Objects & DbContext
-│       ├── DTOs/                  # Data Transfer Objects
-│       ├── Models/                # EF Core Entities
-│       └── Repositories/          # Repository Interfaces & Implementations
-├── 27_Assignment02_FrontEnd/      # Frontend Solution Folder
+│   └── FUNewsManagementAPI/
+├── 27_Assignment02_FrontEnd/      # Assignment 02 - Frontend (Bearer Token)
 │   ├── 27_LeThanhHung_PRN232_A02_FE.sln
 │   ├── 27_Assignment02_FrontEnd.sln
-│   └── FUNewsManagementClient/    # Razor Pages Web Application
-│       ├── Pages/                 # Public, Admin, and Staff management pages
-│       ├── Services/              # ApiService with Bearer Token attachment
-│       └── DTOs/                  # Independent Client DTOs
+│   └── FUNewsManagementClient/
+├── 27_LeThanhHung_Assignment01.sln # Root solution cho Assignment 01
+├── 27_LeThanhHung_Assignment02.sln # Root solution cho Assignment 02
 └── FUNewsManagement.sql           # Database setup script
 ```
 
