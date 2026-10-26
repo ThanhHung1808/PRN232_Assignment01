@@ -14,8 +14,8 @@ Dự án được phân chia độc lập thành 2 thư mục **Assignment01** v
   - Frontend Solution: `Assignment01/27_Assignment01_FrontEnd/27_Assignment01_FrontEnd.sln`
 - **Assignment02**:
   - Unified Solution: `Assignment02/27_LeThanhHung_Assignment02.sln`
-  - Backend Solution: `Assignment02/27_Assignment02_BackEnd/27_LeThanhHung_PRN232_A02_BE.sln` (hoặc `27_Assignment02_BackEnd.sln`)
-  - Frontend Solution: `Assignment02/27_Assignment02_FrontEnd/27_LeThanhHung_PRN232_A02_FE.sln` (hoặc `27_Assignment02_FrontEnd.sln`)
+  - Backend Solution: `Assignment02/27_Assignment02_BackEnd/27_Assignment02_BackEnd.sln`
+  - Frontend Solution: `Assignment02/27_Assignment02_FrontEnd/27_Assignment02_FrontEnd.sln`
 
 ```
 Assignment/
@@ -30,11 +30,9 @@ Assignment/
 │
 ├── Assignment02/
 │   ├── 27_Assignment02_BackEnd/
-│   │   ├── 27_LeThanhHung_PRN232_A02_BE.sln
 │   │   ├── 27_Assignment02_BackEnd.sln
 │   │   └── FUNewsManagementAPI/
 │   ├── 27_Assignment02_FrontEnd/
-│   │   ├── 27_LeThanhHung_PRN232_A02_FE.sln
 │   │   ├── 27_Assignment02_FrontEnd.sln
 │   │   └── FUNewsManagementClient/
 │   └── 27_LeThanhHung_Assignment02.sln    # Solution tổng hợp Ass02
