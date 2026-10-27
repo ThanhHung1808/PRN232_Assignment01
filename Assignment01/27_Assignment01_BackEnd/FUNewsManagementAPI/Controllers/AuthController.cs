@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Text;
 using FUNewsManagementAPI.DTOs;
 using FUNewsManagementAPI.Repositories.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -12,7 +11,6 @@ namespace FUNewsManagementAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [AllowAnonymous]
     public class AuthController : ControllerBase
     {
         private readonly ISystemAccountRepository _accountRepository;
@@ -37,9 +35,9 @@ namespace FUNewsManagementAPI.Controllers
                 return BadRequest(ModelState);
             }
 
-            // 1. Check Admin Credentials from appsettings.json (support @@abc123@@ and admin)
+            // 1. Check Admin Credentials from appsettings.json
             if (string.Equals(request.Email.Trim(), _adminConfig.Email.Trim(), StringComparison.OrdinalIgnoreCase)
-                && (request.Password == _adminConfig.Password || request.Password == "@@abc123@@" || request.Password == "admin"))
+                && request.Password == _adminConfig.Password)
             {
                 var token = GenerateJwtToken("0", "Administrator", _adminConfig.Email, "Admin");
                 return Ok(new LoginResponse

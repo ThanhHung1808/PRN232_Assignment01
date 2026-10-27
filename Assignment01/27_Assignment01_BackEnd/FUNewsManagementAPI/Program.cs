@@ -51,29 +51,20 @@ builder.Services.AddControllers()
 
 // JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "PRN232_FUNewsManagement_SecretKey_For_Assignment01_2026_FPT!";
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "FUNewsManagementAPI",
-        ValidAudience = builder.Configuration["Jwt:Audience"] ?? "FUNewsManagementClient",
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-        RoleClaimType = System.Security.Claims.ClaimTypes.Role,
-        NameClaimType = System.Security.Claims.ClaimTypes.Name
-    };
-});
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "FUNewsManagementAPI",
+            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "FUNewsManagementClient",
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+    });
 
 builder.Services.AddAuthorization();
 
@@ -93,9 +84,9 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo 
     { 
-        Title = "FUNewsManagement API - Assignment 02 (Security Web API)", 
+        Title = "FUNewsManagement API - Assignment 01", 
         Version = "v1",
-        Description = "ASP.NET Core Web API with OData & JWT Authentication (PRN232 Assignment 02)"
+        Description = "ASP.NET Core Web API with OData for FUNewsManagement System (PRN232 Assignment 01)"
     });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

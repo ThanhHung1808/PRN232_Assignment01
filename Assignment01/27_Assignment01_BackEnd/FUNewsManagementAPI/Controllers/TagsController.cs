@@ -1,7 +1,6 @@
 
 using FUNewsManagementAPI.Models;
 using FUNewsManagementAPI.Repositories.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
@@ -21,7 +20,6 @@ namespace FUNewsManagementAPI.Controllers
 
         [HttpGet]
         [EnableQuery]
-        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Tag>>> GetTags()
         {
             var tags = await _tagRepository.GetTagsAsync();
@@ -29,7 +27,6 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        [AllowAnonymous]
         public async Task<ActionResult<Tag>> GetTag(int id)
         {
             var tag = await _tagRepository.GetTagByIdAsync(id);
@@ -38,7 +35,6 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Staff")]
         public async Task<IActionResult> CreateTag([FromBody] Tag tag)
         {
             var created = await _tagRepository.AddTagAsync(tag);
@@ -46,7 +42,6 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Staff")]
         public async Task<IActionResult> UpdateTag(int id, [FromBody] Tag tag)
         {
             tag.TagId = id;
@@ -55,7 +50,6 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Staff")]
         public async Task<IActionResult> DeleteTag(int id)
         {
             var success = await _tagRepository.DeleteTagAsync(id);

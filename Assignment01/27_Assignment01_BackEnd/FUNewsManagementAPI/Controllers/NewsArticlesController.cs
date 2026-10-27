@@ -1,7 +1,6 @@
 using FUNewsManagementAPI.DTOs;
 using FUNewsManagementAPI.Models;
 using FUNewsManagementAPI.Repositories.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
@@ -21,7 +20,6 @@ namespace FUNewsManagementAPI.Controllers
 
         [HttpGet]
         [EnableQuery]
-        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<NewsArticleResponseDto>>> GetArticles(
             [FromQuery] bool? activeOnly,
             [FromQuery] string? keyword,
@@ -34,7 +32,6 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        [AllowAnonymous]
         public async Task<ActionResult<NewsArticleResponseDto>> GetArticle(string id)
         {
             var article = await _articleRepository.GetArticleByIdAsync(id);
@@ -46,7 +43,6 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpGet("author/{authorId}")]
-        [Authorize(Roles = "Staff")]
         public async Task<ActionResult<IEnumerable<NewsArticleResponseDto>>> GetArticlesByAuthor(short authorId)
         {
             var articles = await _articleRepository.GetArticlesByAuthorAsync(authorId);
@@ -55,7 +51,6 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Staff")]
         public async Task<IActionResult> CreateArticle([FromBody] NewsArticleCreateUpdateDto dto, [FromQuery] short? createdById)
         {
             if (!ModelState.IsValid)
@@ -94,7 +89,6 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Staff")]
         public async Task<IActionResult> UpdateArticle(string id, [FromBody] NewsArticleCreateUpdateDto dto, [FromQuery] short? updatedById)
         {
             if (!ModelState.IsValid)
@@ -131,7 +125,6 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Staff")]
         public async Task<IActionResult> DeleteArticle(string id)
         {
             try

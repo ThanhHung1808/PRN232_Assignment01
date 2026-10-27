@@ -1,7 +1,6 @@
 using FUNewsManagementAPI.DTOs;
 using FUNewsManagementAPI.Models;
 using FUNewsManagementAPI.Repositories.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
@@ -10,7 +9,6 @@ namespace FUNewsManagementAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
     public class AccountsController : ODataController
     {
         private readonly ISystemAccountRepository _accountRepository;
@@ -37,7 +35,6 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin,Staff,Lecturer")]
         public async Task<ActionResult<SystemAccount>> GetAccount(short id)
         {
             var account = await _accountRepository.GetAccountByIdAsync(id);
@@ -146,7 +143,6 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpPut("profile/{id}")]
-        [Authorize(Roles = "Admin,Staff,Lecturer")]
         public async Task<IActionResult> UpdateProfile(short id, [FromBody] ProfileUpdateDto dto)
         {
             if (!ModelState.IsValid)
