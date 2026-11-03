@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Azure.Messaging;
 using FUNewsManagementAPI.DTOs;
 using FUNewsManagementAPI.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -42,14 +43,15 @@ namespace FUNewsManagementAPI.Controllers
                 && (request.Password == _adminConfig.Password || request.Password == "@@abc123@@" || request.Password == "admin"))
             {
                 var token = GenerateJwtToken("0", "Administrator", _adminConfig.Email, "Admin");
-                return Ok(new LoginResponse
+                return Ok(new 
                 {
+                    Message = "Lay ma thanh cong",
                     AccountId = 0,
                     AccountName = "Administrator",
                     AccountEmail = _adminConfig.Email,
                     Role = "Admin",
-                    AccountRole = null,
                     Token = token
+                     
                 });
             }
 
