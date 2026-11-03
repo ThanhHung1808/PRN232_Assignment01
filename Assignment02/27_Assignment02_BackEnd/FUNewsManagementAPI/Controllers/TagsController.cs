@@ -20,6 +20,7 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpGet]
+        [HttpGet("/odata/Tags")]
         [EnableQuery]
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Tag>>> GetTags()

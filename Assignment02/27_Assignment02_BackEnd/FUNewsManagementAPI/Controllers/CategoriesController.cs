@@ -20,6 +20,7 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpGet]
+        [HttpGet("/odata/Categories")]
         [EnableQuery]
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<CategoryResponseDto>>> GetCategories([FromQuery] bool? activeOnly)

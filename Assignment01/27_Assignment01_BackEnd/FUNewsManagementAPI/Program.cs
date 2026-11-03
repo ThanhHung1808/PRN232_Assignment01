@@ -31,9 +31,9 @@ builder.Services.AddScoped<ITagRepository, TagRepository>();
 static IEdmModel GetEdmModel()
 {
     var modelBuilder = new ODataConventionModelBuilder();
-    modelBuilder.EntitySet<Category>("Categories");
-    modelBuilder.EntitySet<NewsArticle>("NewsArticles");
-    modelBuilder.EntitySet<SystemAccount>("Accounts");
+    modelBuilder.EntitySet<CategoryResponseDto>("Categories");
+    modelBuilder.EntitySet<NewsArticleResponseDto>("NewsArticles");
+    modelBuilder.EntitySet<AccountResponseDto>("Accounts");
     modelBuilder.EntitySet<Tag>("Tags");
     return modelBuilder.GetEdmModel();
 }

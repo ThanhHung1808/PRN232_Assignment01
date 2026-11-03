@@ -21,6 +21,7 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpGet]
+        [HttpGet("/odata/Accounts")]
         [EnableQuery]
         public async Task<ActionResult<IEnumerable<AccountResponseDto>>> GetAccounts()
         {
@@ -33,7 +34,7 @@ namespace FUNewsManagementAPI.Controllers
                 AccountRole = a.AccountRole,
                 CreatedArticlesCount = a.CreatedNewsArticles?.Count ?? 0
             });
-            return Ok(dtos.AsQueryable());
+            return Content("Hi");
         }
 
         [HttpGet("{id}")]

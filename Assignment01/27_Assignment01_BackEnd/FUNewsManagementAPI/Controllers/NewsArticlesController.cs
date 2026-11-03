@@ -19,6 +19,7 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpGet]
+        [HttpGet("/odata/NewsArticles")]
         [EnableQuery]
         public async Task<ActionResult<IEnumerable<NewsArticleResponseDto>>> GetArticles(
             [FromQuery] bool? activeOnly,

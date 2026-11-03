@@ -253,3 +253,4 @@ GET https://localhost:7000/odata/Accounts?$filter=accountRole eq 1&$orderby=acco
 | `endswith(cột, 'chuỗi')` | Kết thúc bằng | `endswith(newsTitle, 'Program')` |
 | `tolower(cột)` | Chuyển thành chữ thường | `contains(tolower(newsTitle), 'fu')` |
 | `toupper(cột)` | Chuyển thành chữ in hoa | `contains(toupper(newsTitle), 'FU')` |
+
