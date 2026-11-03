@@ -20,6 +20,7 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpGet]
+        [HttpGet("/odata/NewsArticles")]
         [EnableQuery]
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<NewsArticleResponseDto>>> GetArticles(
