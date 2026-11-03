@@ -29,9 +29,7 @@ namespace FUNewsManagementAPI.DAO
                     .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
                 var configuration = builder.Build();
-                var connectionString = configuration.GetConnectionString("MyCNN")
-                    ?? configuration.GetConnectionString("DefaultConnection")
-                    ?? "Server=.;Database=FUNewsManagement;Trusted_Connection=True;TrustServerCertificate=True;";
+                var connectionString = configuration.GetConnectionString("MyCNN");
                 optionsBuilder.UseSqlServer(connectionString);
             }
         }

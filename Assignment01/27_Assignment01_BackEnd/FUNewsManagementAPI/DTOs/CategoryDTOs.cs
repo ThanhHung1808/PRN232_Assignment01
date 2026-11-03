@@ -4,6 +4,7 @@ namespace FUNewsManagementAPI.DTOs
 {
     public class CategoryCreateUpdateDto
     {
+        [Key]
         public short CategoryId { get; set; }
 
         [Required(ErrorMessage = "Category Name is required")]
@@ -21,6 +22,7 @@ namespace FUNewsManagementAPI.DTOs
 
     public class CategoryResponseDto
     {
+        [Key]
         public short CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;
         public string CategoryDesciption { get; set; } = string.Empty;

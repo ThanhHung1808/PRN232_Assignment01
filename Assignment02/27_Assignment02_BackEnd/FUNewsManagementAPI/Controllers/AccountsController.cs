@@ -34,7 +34,7 @@ namespace FUNewsManagementAPI.Controllers
                 AccountRole = a.AccountRole,
                 CreatedArticlesCount = a.CreatedNewsArticles?.Count ?? 0
             });
-            return Content("Hi");
+            return Ok(dtos.AsQueryable());
         }
 
         [HttpGet("{id}")]

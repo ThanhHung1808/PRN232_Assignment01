@@ -6,6 +6,7 @@ namespace FUNewsManagementAPI.DTOs
     {
         [Required(ErrorMessage = "News Article ID is required")]
         [StringLength(20, ErrorMessage = "News Article ID cannot exceed 20 characters")]
+        [Key]
         public string NewsArticleId { get; set; } = string.Empty;
 
         [StringLength(400, ErrorMessage = "News Title cannot exceed 400 characters")]
@@ -31,6 +32,7 @@ namespace FUNewsManagementAPI.DTOs
 
     public class NewsArticleResponseDto
     {
+        [Key]
         public string NewsArticleId { get; set; } = string.Empty;
         public string? NewsTitle { get; set; }
         public string Headline { get; set; } = string.Empty;

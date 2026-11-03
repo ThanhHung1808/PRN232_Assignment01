@@ -31,9 +31,15 @@ builder.Services.AddScoped<ITagRepository, TagRepository>();
 static IEdmModel GetEdmModel()
 {
     var modelBuilder = new ODataConventionModelBuilder();
-    modelBuilder.EntitySet<CategoryResponseDto>("Categories");
-    modelBuilder.EntitySet<NewsArticleResponseDto>("NewsArticles");
-    modelBuilder.EntitySet<AccountResponseDto>("Accounts");
+    var categories = modelBuilder.EntitySet<CategoryResponseDto>("Categories");
+    categories.EntityType.HasKey(c => c.CategoryId);
+
+    var articles = modelBuilder.EntitySet<NewsArticleResponseDto>("NewsArticles");
+    articles.EntityType.HasKey(n => n.NewsArticleId);
+
+    var accounts = modelBuilder.EntitySet<AccountResponseDto>("Accounts");
+    accounts.EntityType.HasKey(a => a.AccountId);
+
     modelBuilder.EntitySet<Tag>("Tags");
     return modelBuilder.GetEdmModel();
 }
@@ -89,6 +95,8 @@ builder.Services.AddSwaggerGen(c =>
         Description = "ASP.NET Core Web API with OData for FUNewsManagement System (PRN232 Assignment 01)"
     });
 
+    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "Paste your JWT token here (without 'Bearer ' prefix). Example: eyJhbGciOi...",
@@ -116,6 +124,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+app.UseDeveloperExceptionPage();
 
 // Configure the HTTP request pipeline.
 app.UseSwagger();

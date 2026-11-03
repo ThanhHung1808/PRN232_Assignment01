@@ -31,6 +31,7 @@ namespace FUNewsManagementAPI.DTOs
 
     public class NewsArticleResponseDto
     {
+        [Key]
         public string NewsArticleId { get; set; } = string.Empty;
         public string? NewsTitle { get; set; }
         public string Headline { get; set; } = string.Empty;
