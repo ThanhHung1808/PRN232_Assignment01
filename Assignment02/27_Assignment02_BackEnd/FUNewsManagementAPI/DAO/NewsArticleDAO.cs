@@ -21,9 +21,8 @@ namespace FUNewsManagementAPI.DAO
             }
         }
 
-        public async Task<List<NewsArticle>> GetArticlesAsync(bool? activeOnly = null, string? keyword = null, short? categoryId = null, int? tagId = null)
+        public async Task<List<NewsArticle>> GetArticlesAsync(FUNewsManagementDbContext context, bool? activeOnly = null, string? keyword = null, short? categoryId = null, int? tagId = null)
         {
-            using var context = new FUNewsManagementDbContext();
             var query = context.NewsArticles
                 .Include(n => n.Category)
                 .Include(n => n.CreatedBy)
@@ -57,9 +56,8 @@ namespace FUNewsManagementAPI.DAO
             return await query.OrderByDescending(n => n.CreatedDate).ToListAsync();
         }
 
-        public async Task<NewsArticle?> GetArticleByIdAsync(string id)
+        public async Task<NewsArticle?> GetArticleByIdAsync(FUNewsManagementDbContext context, string id)
         {
-            using var context = new FUNewsManagementDbContext();
             return await context.NewsArticles
                 .Include(n => n.Category)
                 .Include(n => n.CreatedBy)
@@ -68,9 +66,8 @@ namespace FUNewsManagementAPI.DAO
                 .FirstOrDefaultAsync(n => n.NewsArticleId == id);
         }
 
-        public async Task<List<NewsArticle>> GetArticlesByAuthorAsync(short authorId)
+        public async Task<List<NewsArticle>> GetArticlesByAuthorAsync(FUNewsManagementDbContext context, short authorId)
         {
-            using var context = new FUNewsManagementDbContext();
             return await context.NewsArticles
                 .Include(n => n.Category)
                 .Include(n => n.CreatedBy)
@@ -81,11 +78,9 @@ namespace FUNewsManagementAPI.DAO
                 .ToListAsync();
         }
 
-        public async Task<NewsArticle> AddArticleAsync(NewsArticle article, List<int>? tagIds = null)
+        public async Task<NewsArticle> AddArticleAsync(FUNewsManagementDbContext context, NewsArticle article, List<int>? tagIds = null)
         {
-            using var context = new FUNewsManagementDbContext();
-
-            // Auto-assign next sequential ID if empty or "0" (similar to SystemAccount)
+            // Auto-assign next sequential ID if empty or "0"
             if (string.IsNullOrWhiteSpace(article.NewsArticleId) || article.NewsArticleId == "0")
             {
                 var allIds = await context.NewsArticles.Select(n => n.NewsArticleId).ToListAsync();
@@ -140,12 +135,11 @@ namespace FUNewsManagementAPI.DAO
                 await context.SaveChangesAsync();
             }
 
-            return await GetArticleByIdAsync(article.NewsArticleId) ?? article;
+            return await GetArticleByIdAsync(context, article.NewsArticleId) ?? article;
         }
 
-        public async Task<NewsArticle> UpdateArticleAsync(NewsArticle article, List<int>? tagIds = null)
+        public async Task<NewsArticle> UpdateArticleAsync(FUNewsManagementDbContext context, NewsArticle article, List<int>? tagIds = null)
         {
-            using var context = new FUNewsManagementDbContext();
             var existing = await context.NewsArticles
                 .Include(n => n.NewsTags)
                 .FirstOrDefaultAsync(n => n.NewsArticleId == article.NewsArticleId);
@@ -196,12 +190,11 @@ namespace FUNewsManagementAPI.DAO
             }
 
             await context.SaveChangesAsync();
-            return await GetArticleByIdAsync(existing.NewsArticleId) ?? existing;
+            return await GetArticleByIdAsync(context, existing.NewsArticleId) ?? existing;
         }
 
-        public async Task<bool> DeleteArticleAsync(string id)
+        public async Task<bool> DeleteArticleAsync(FUNewsManagementDbContext context, string id)
         {
-            using var context = new FUNewsManagementDbContext();
             var existing = await context.NewsArticles
                 .Include(n => n.NewsTags)
                 .FirstOrDefaultAsync(n => n.NewsArticleId == id);
@@ -218,9 +211,8 @@ namespace FUNewsManagementAPI.DAO
             return true;
         }
 
-        public async Task<List<NewsArticle>> GetReportAsync(DateTime startDate, DateTime endDate)
+        public async Task<List<NewsArticle>> GetReportAsync(FUNewsManagementDbContext context, DateTime startDate, DateTime endDate)
         {
-            using var context = new FUNewsManagementDbContext();
             var start = startDate.Date;
             var end = endDate.Date.AddDays(1).AddTicks(-1);
 

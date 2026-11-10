@@ -21,9 +21,8 @@ namespace FUNewsManagementAPI.DAO
             }
         }
 
-        public async Task<List<Category>> GetCategoriesAsync(bool? activeOnly = null)
+        public async Task<List<Category>> GetCategoriesAsync(FUNewsManagementDbContext context, bool? activeOnly = null)
         {
-            using var context = new FUNewsManagementDbContext();
             var query = context.Categories
                 .Include(c => c.ParentCategory)
                 .Include(c => c.NewsArticles)
@@ -37,19 +36,16 @@ namespace FUNewsManagementAPI.DAO
             return await query.ToListAsync();
         }
 
-        public async Task<Category?> GetCategoryByIdAsync(short id)
+        public async Task<Category?> GetCategoryByIdAsync(FUNewsManagementDbContext context, short id)
         {
-            using var context = new FUNewsManagementDbContext();
             return await context.Categories
                 .Include(c => c.ParentCategory)
                 .Include(c => c.NewsArticles)
                 .FirstOrDefaultAsync(c => c.CategoryId == id);
         }
 
-        public async Task<Category> AddCategoryAsync(Category category)
+        public async Task<Category> AddCategoryAsync(FUNewsManagementDbContext context, Category category)
         {
-            using var context = new FUNewsManagementDbContext();
-
             // Check duplicate CategoryName
             var nameExists = await context.Categories
                 .AnyAsync(c => c.CategoryName.Trim().ToLower() == category.CategoryName.Trim().ToLower());
@@ -76,9 +72,8 @@ namespace FUNewsManagementAPI.DAO
             return category;
         }
 
-        public async Task<Category> UpdateCategoryAsync(Category category)
+        public async Task<Category> UpdateCategoryAsync(FUNewsManagementDbContext context, Category category)
         {
-            using var context = new FUNewsManagementDbContext();
             var existing = await context.Categories.FindAsync(category.CategoryId);
             if (existing == null)
             {
@@ -121,15 +116,13 @@ namespace FUNewsManagementAPI.DAO
             return existing;
         }
 
-        public async Task<bool> HasNewsArticlesAsync(short categoryId)
+        public async Task<bool> HasNewsArticlesAsync(FUNewsManagementDbContext context, short categoryId)
         {
-            using var context = new FUNewsManagementDbContext();
             return await context.NewsArticles.AnyAsync(n => n.CategoryId == categoryId);
         }
 
-        public async Task<bool> DeleteCategoryAsync(short id)
+        public async Task<bool> DeleteCategoryAsync(FUNewsManagementDbContext context, short id)
         {
-            using var context = new FUNewsManagementDbContext();
             var existing = await context.Categories.FindAsync(id);
             if (existing == null) return false;
 

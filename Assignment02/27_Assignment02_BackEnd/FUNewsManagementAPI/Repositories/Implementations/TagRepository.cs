@@ -6,14 +6,17 @@ namespace FUNewsManagementAPI.Repositories.Implementations
 {
     public class TagRepository : ITagRepository
     {
-        public Task<List<Tag>> GetTagsAsync() => TagDAO.Instance.GetTagsAsync();
+        private readonly FUNewsManagementDbContext _context;
 
-        public Task<Tag?> GetTagByIdAsync(int id) => TagDAO.Instance.GetTagByIdAsync(id);
+        public TagRepository(FUNewsManagementDbContext context)
+        {
+            _context = context;
+        }
 
-        public Task<Tag> AddTagAsync(Tag tag) => TagDAO.Instance.AddTagAsync(tag);
-
-        public Task<Tag> UpdateTagAsync(Tag tag) => TagDAO.Instance.UpdateTagAsync(tag);
-
-        public Task<bool> DeleteTagAsync(int id) => TagDAO.Instance.DeleteTagAsync(id);
+        public Task<List<Tag>> GetTagsAsync() => TagDAO.Instance.GetTagsAsync(_context);
+        public Task<Tag?> GetTagByIdAsync(int id) => TagDAO.Instance.GetTagByIdAsync(_context, id);
+        public Task<Tag> AddTagAsync(Tag tag) => TagDAO.Instance.AddTagAsync(_context, tag);
+        public Task<Tag> UpdateTagAsync(Tag tag) => TagDAO.Instance.UpdateTagAsync(_context, tag);
+        public Task<bool> DeleteTagAsync(int id) => TagDAO.Instance.DeleteTagAsync(_context, id);
     }
 }

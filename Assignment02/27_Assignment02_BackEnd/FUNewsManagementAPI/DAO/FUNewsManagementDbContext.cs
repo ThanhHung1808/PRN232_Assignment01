@@ -21,19 +21,6 @@ namespace FUNewsManagementAPI.DAO
         public virtual DbSet<SystemAccount> SystemAccounts { get; set; } = null!;
         public virtual DbSet<Tag> Tags { get; set; } = null!;
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                var builder = new ConfigurationBuilder()
-                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-                var configuration = builder.Build();
-                var connectionString = configuration.GetConnectionString("MyCNN");
-                optionsBuilder.UseSqlServer(connectionString);
-            }
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Category>(entity =>

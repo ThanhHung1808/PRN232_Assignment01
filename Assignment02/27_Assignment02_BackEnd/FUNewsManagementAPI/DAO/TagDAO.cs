@@ -21,22 +21,18 @@ namespace FUNewsManagementAPI.DAO
             }
         }
 
-        public async Task<List<Tag>> GetTagsAsync()
+        public async Task<List<Tag>> GetTagsAsync(FUNewsManagementDbContext context)
         {
-            using var context = new FUNewsManagementDbContext();
             return await context.Tags.ToListAsync();
         }
 
-        public async Task<Tag?> GetTagByIdAsync(int id)
+        public async Task<Tag?> GetTagByIdAsync(FUNewsManagementDbContext context, int id)
         {
-            using var context = new FUNewsManagementDbContext();
             return await context.Tags.FindAsync(id);
         }
 
-        public async Task<Tag> AddTagAsync(Tag tag)
+        public async Task<Tag> AddTagAsync(FUNewsManagementDbContext context, Tag tag)
         {
-            using var context = new FUNewsManagementDbContext();
-
             if (!string.IsNullOrWhiteSpace(tag.TagName))
             {
                 var tagExists = await context.Tags.AnyAsync(t => t.TagName != null && t.TagName.Trim().ToLower() == tag.TagName.Trim().ToLower());
@@ -65,9 +61,8 @@ namespace FUNewsManagementAPI.DAO
             return tag;
         }
 
-        public async Task<Tag> UpdateTagAsync(Tag tag)
+        public async Task<Tag> UpdateTagAsync(FUNewsManagementDbContext context, Tag tag)
         {
-            using var context = new FUNewsManagementDbContext();
             var existing = await context.Tags.FindAsync(tag.TagId);
             if (existing == null) throw new KeyNotFoundException($"Tag ID {tag.TagId} not found.");
 
@@ -86,9 +81,8 @@ namespace FUNewsManagementAPI.DAO
             return existing;
         }
 
-        public async Task<bool> DeleteTagAsync(int id)
+        public async Task<bool> DeleteTagAsync(FUNewsManagementDbContext context, int id)
         {
-            using var context = new FUNewsManagementDbContext();
             var existing = await context.Tags.FindAsync(id);
             if (existing == null) return false;
 

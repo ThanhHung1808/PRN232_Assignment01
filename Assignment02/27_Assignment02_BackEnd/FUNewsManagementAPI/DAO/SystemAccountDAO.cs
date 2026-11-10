@@ -22,42 +22,36 @@ namespace FUNewsManagementAPI.DAO
             }
         }
 
-        public async Task<List<SystemAccount>> GetAccountsAsync()
+        public async Task<List<SystemAccount>> GetAccountsAsync(FUNewsManagementDbContext context)
         {
-            using var context = new FUNewsManagementDbContext();
             return await context.SystemAccounts
                 .Include(a => a.CreatedNewsArticles)
                 .ToListAsync();
         }
 
-        public async Task<SystemAccount?> GetAccountByIdAsync(short id)
+        public async Task<SystemAccount?> GetAccountByIdAsync(FUNewsManagementDbContext context, short id)
         {
-            using var context = new FUNewsManagementDbContext();
             return await context.SystemAccounts
                 .Include(a => a.CreatedNewsArticles)
                 .FirstOrDefaultAsync(a => a.AccountId == id);
         }
 
-        public async Task<SystemAccount?> GetAccountByEmailAsync(string email)
+        public async Task<SystemAccount?> GetAccountByEmailAsync(FUNewsManagementDbContext context, string email)
         {
-            using var context = new FUNewsManagementDbContext();
             return await context.SystemAccounts
                 .FirstOrDefaultAsync(a => a.AccountEmail != null && a.AccountEmail.ToLower() == email.Trim().ToLower());
         }
 
-        public async Task<SystemAccount?> LoginAsync(string email, string password)
+        public async Task<SystemAccount?> LoginAsync(FUNewsManagementDbContext context, string email, string password)
         {
-            using var context = new FUNewsManagementDbContext();
             return await context.SystemAccounts
                 .FirstOrDefaultAsync(a => a.AccountEmail != null 
                     && a.AccountEmail.ToLower() == email.Trim().ToLower() 
                     && a.AccountPassword == password);
         }
 
-        public async Task<SystemAccount> AddAccountAsync(SystemAccount account)
+        public async Task<SystemAccount> AddAccountAsync(FUNewsManagementDbContext context, SystemAccount account)
         {
-            using var context = new FUNewsManagementDbContext();
-
             // 1. Check duplicate Account ID
             if (account.AccountId == 0)
             {
@@ -94,9 +88,8 @@ namespace FUNewsManagementAPI.DAO
             return account;
         }
 
-        public async Task<SystemAccount> UpdateAccountAsync(SystemAccount account)
+        public async Task<SystemAccount> UpdateAccountAsync(FUNewsManagementDbContext context, SystemAccount account)
         {
-            using var context = new FUNewsManagementDbContext();
             var existing = await context.SystemAccounts.FindAsync(account.AccountId);
             if (existing == null)
             {
@@ -140,15 +133,13 @@ namespace FUNewsManagementAPI.DAO
             return existing;
         }
 
-        public async Task<bool> HasCreatedArticlesAsync(short accountId)
+        public async Task<bool> HasCreatedArticlesAsync(FUNewsManagementDbContext context, short accountId)
         {
-            using var context = new FUNewsManagementDbContext();
             return await context.NewsArticles.AnyAsync(n => n.CreatedById == accountId);
         }
 
-        public async Task<bool> DeleteAccountAsync(short id)
+        public async Task<bool> DeleteAccountAsync(FUNewsManagementDbContext context, short id)
         {
-            using var context = new FUNewsManagementDbContext();
             var existing = await context.SystemAccounts.FindAsync(id);
             if (existing == null) return false;
 

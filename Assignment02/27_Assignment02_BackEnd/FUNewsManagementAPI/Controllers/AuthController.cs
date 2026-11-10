@@ -30,6 +30,32 @@ namespace FUNewsManagementAPI.Controllers
             _configuration = configuration;
         }
 
+        [HttpGet("status")]
+        [AllowAnonymous]
+        public IActionResult CheckAuthStatus()
+        {
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                return Ok(new
+                {
+                    //IsAuthenticated = true,
+                    //Status = "ĐÃ XÁC THỰC (AUTHENTICATED)",
+                    //Message = "Tài khoản của bạn đã được xác thực thành công trên Swagger!",
+                    AccountId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+                    AccountName = User.FindFirst(ClaimTypes.Name)?.Value,
+                    AccountEmail = User.FindFirst(ClaimTypes.Email)?.Value,
+                    Role = User.FindFirst(ClaimTypes.Role)?.Value
+                });
+            }
+
+            return Ok(new
+            {
+                IsAuthenticated = false,
+                Status = "CHƯA XÁC THỰC (UNAUTHENTICATED)",
+                Message = "Swagger hiện CHƯA được xác thực! Vui lòng bấm nút 'Authorize' (ổ khóa màu xanh ở góc phải Swagger), dán mã Token từ API /api/Auth/login rồi nhấn Authorize."
+            });
+        }
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
