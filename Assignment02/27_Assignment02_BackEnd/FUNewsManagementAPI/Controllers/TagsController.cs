@@ -30,7 +30,7 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        [AllowAnonymous]
+        [Authorize(Roles = "Staff")]
         public async Task<ActionResult<Tag>> GetTag(int id)
         {
             var tag = await _tagRepository.GetTagByIdAsync(id);

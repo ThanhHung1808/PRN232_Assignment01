@@ -11,6 +11,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authorization;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,6 +72,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"] ?? "FUNewsManagementClient",
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
+
         options.Events = new JwtBearerEvents
         {
             OnChallenge = async context =>
@@ -124,6 +127,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 
     c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+    c.OperationFilter<AuthorizeRoleOperationFilter>();
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -171,3 +175,70 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public class AuthorizeRoleOperationFilter : IOperationFilter
+{
+    public void Apply(OpenApiOperation operation, OperationFilterContext context)
+    {
+        var actionMetadata = context.ApiDescription.ActionDescriptor.EndpointMetadata;
+        var authAttributes = actionMetadata.OfType<AuthorizeAttribute>().ToList();
+        var allowAnonymous = actionMetadata.OfType<AllowAnonymousAttribute>().Any();
+
+        string roleTag;
+        if (allowAnonymous || !authAttributes.Any())
+        {
+            roleTag = "(Public)";
+        }
+        else
+        {
+            var roles = authAttributes
+                .Where(a => !string.IsNullOrEmpty(a.Roles))
+                .SelectMany(a => a.Roles!.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+                .Distinct()
+                .ToList();
+
+            if (roles.Any())
+            {
+                roleTag = $"({string.Join(", ", roles)})";
+            }
+            else
+            {
+                roleTag = "(Authenticated)";
+            }
+        }
+
+        var methodName = context.MethodInfo.Name;
+        var friendlyName = methodName switch
+        {
+            "GetAccounts" => "Lấy danh sách tài khoản",
+            "GetAccount" => "Lấy thông tin tài khoản",
+            "CreateAccount" => "Tạo mới tài khoản",
+            "UpdateAccount" => "Cập nhật tài khoản",
+            "DeleteAccount" => "Xóa tài khoản",
+            "UpdateProfile" => "Cập nhật hồ sơ cá nhân",
+            "GetArticles" => "Lấy danh sách bài báo",
+            "GetArticle" => "Lấy chi tiết bài báo",
+            "GetArticlesByAuthor" => "Lấy bài báo theo tác giả",
+            "CreateArticle" => "Tạo mới bài báo",
+            "UpdateArticle" => "Cập nhật bài báo",
+            "DeleteArticle" => "Xóa bài báo",
+            "GetCategories" => "Lấy danh sách danh mục",
+            "GetCategory" => "Lấy chi tiết danh mục",
+            "CreateCategory" => "Tạo mới danh mục",
+            "UpdateCategory" => "Cập nhật danh mục",
+            "DeleteCategory" => "Xóa danh mục",
+            "GetTags" => "Lấy danh sách thẻ Tag",
+            "GetTag" => "Lấy chi tiết thẻ Tag",
+            "CreateTag" => "Tạo mới thẻ Tag",
+            "UpdateTag" => "Cập nhật thẻ Tag",
+            "DeleteTag" => "Xóa thẻ Tag",
+            "Login" => "Đăng nhập hệ thống",
+            "CheckAuthStatus" => "Kiểm tra trạng thái xác thực",
+            "GetStatistics" => "Báo cáo thống kê tin tức",
+            _ => methodName
+        };
+
+        operation.Summary = $"{friendlyName} {roleTag}";
+        operation.Description = $"Quyền thực thi: {roleTag.Replace("(", "").Replace(")", "")}. " + (operation.Description ?? "");
+    }
+}

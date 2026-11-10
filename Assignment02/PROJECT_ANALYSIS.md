@@ -17,6 +17,11 @@
    - [3.6. ReportsController (`api/reports`)](#36-reportscontroller-apireports)
 4. [Luồng luân chuyển dữ liệu (Data & Request Flow)](#4-luồng-luân-chuyển-dữ-liệu-data--request-flow)
 5. [Cơ chế Phân quyền (Role-Based Authorization) & Ràng buộc nghiệp vụ](#5-cơ-chế-phân-quyền-role-based-authorization--ràng-buộc-nghiệp-vụ)
+   - [5.1. Phân quyền theo các vai trò người dùng](#51-phân-quyền-theo-các-vai-trò-người-dùng)
+   - [5.2. Ma trận phân quyền chi tiết toàn bộ API (RBAC Matrix) & Quy tắc phân định phương thức GET](#52-ma-trận-phân-quyền-chi-tiết-toàn-bộ-api-rbac-matrix--quy-tắc-phân-định-phương-thức-get)
+   - [5.3. Cơ chế phản hồi lỗi xác thực tập trung (401 Unauthorized & 403 Forbidden)](#53-cơ-chế-phản-hồi-lỗi-xác-thực-tập-trung-401-unauthorized--403-forbidden)
+   - [5.4. Tự động hóa gán nhãn quyền hạn trên Swagger (AuthorizeRoleOperationFilter)](#54-tự-động-hóa-gán-nhãn-quyền-hạn-trên-swagger-authorizeroleoperationfilter)
+   - [5.5. Các ràng buộc nghiệp vụ chặt chẽ (Business Constraints)](#55-các-ràng-buộc-nghiệp-vụ-chặt-chẽ-business-constraints)
 
 ---
 
@@ -30,7 +35,7 @@ Assignment/Assignment02/
 │   ├── 27_Assignment02_BackEnd.sln
 │   └── FUNewsManagementAPI/       # Dự án Web API (OData v8 + JWT Bearer Auth)
 │       ├── Controllers/           # Tiếp nhận HTTP Request & OData endpoints
-│       ├── DAO/                   # Xử lý truy vấn CSDL (Singleton Pattern) + DbContext
+│       ├── DAO/                   # Xử lý truy vấn CSDL (Singleton Pattern) + DbContext  
 │       ├── DTOs/                  # Đối tượng truyền nhận dữ liệu
 │       ├── Models/                # Entity Framework Core Data Entities
 │       └── Repositories/          # Interface & Implementation (Repository Pattern)
@@ -331,14 +336,15 @@ sequenceDiagram
 
 ## 5. CƠ CHẾ PHÂN QUYỀN (ROLE-BASED AUTHORIZATION) & RÀNG BUỘC NGHIỆP VỤ
 
-### 1. Phân quyền theo 3 vai trò:
+### 5.1. Phân quyền theo các vai trò người dùng:
 - **Khách vãng lai (Public / Anonymous)**:
   - Chỉ xem các bài viết có trạng thái kích hoạt (`NewsStatus == true`).
+  - Xem danh sách danh mục active, thẻ tags để tìm kiếm/lọc tin tức ngoài trang chủ.
   - Tìm kiếm bài viết theo từ khóa, lọc theo danh mục, đọc bài viết chi tiết qua Modal.
   - Không thể truy cập vào các đường dẫn quản trị `/Admin/*` hay `/Staff/*`.
 - **Nhân viên (Staff - Role 1)**:
   - Quản lý danh mục (Category Management) qua Modal Popup.
-  - Quản lý bài viết tin tức (News Article Management) + Chọn gán Tags qua Modal.
+  - Quản lý bài viết tin tức (News Article Management: Read, Create, Update, Delete) + Chọn gán Tags qua Modal.
   - Xem lịch sử bài viết của chính mình (My News History).
   - Quản lý trang cá nhân (Profile) và đổi mật khẩu.
 - **Giảng viên (Lecturer - Role 2)**:
@@ -347,11 +353,80 @@ sequenceDiagram
   - Quản lý trang cá nhân (Profile) và đổi mật khẩu tài khoản của chính mình (`/Staff/Profile`).
   - Được bảo vệ an toàn phân quyền: Không được phép truy cập trái phép vào trang quản trị bài viết/danh mục của Staff hay trang tài khoản của Admin (nếu cố tình vào sẽ bị điều hướng an toàn về trang chủ kèm thông báo từ chối quyền truy cập).
 - **Quản trị viên (Admin)**:
-  - Quản lý toàn bộ tài khoản hệ thống (SystemAccount Management) qua Modal Popup (tự động gợi ý Account ID theo thứ tự).
+  - Quản lý toàn bộ tài khoản hệ thống (SystemAccount Management: CRUD) qua Modal Popup (tự động gợi ý Account ID theo thứ tự).
   - Thống kê báo cáo bài viết theo khoảng ngày (Report Statistics).
   - Xuất báo cáo bài viết ra định dạng file Excel (`.xlsx`) chuyên nghiệp (sử dụng ClosedXML, định dạng màu sắc header, viền ô, căn lề và tự động điều chỉnh độ rộng cột).
 
-### 2. Các ràng buộc nghiệp vụ chặt chẽ (Business Constraints):
+---
+
+### 5.2. Ma trận phân quyền chi tiết toàn bộ API (RBAC Matrix) & Quy tắc phân định phương thức GET
+Hệ thống áp dụng chuẩn phân quyền nghiêm ngặt theo tài liệu yêu cầu `PRN232Assignment02.docx`:
+- **Quy tắc phân định GET (Public vs Phân quyền theo Đề bài)**:
+  - **GET tổng thể (Public / AllowAnonymous)**: Chỉ áp dụng cho các dữ liệu công khai trên cổng tin tức gồm danh sách bài báo active (`GET /api/NewsArticles`), danh sách danh mục (`GET /api/Categories`), danh sách tag (`GET /api/Tags`) và trạng thái xác thực (`GET /api/Auth/status`).
+  - **GET theo ID & Chức năng nghiệp vụ riêng**: Bắt buộc phải xác thực Token và tuân thủ chặt chẽ Role được quy định trong đề bài (ví dụ: Staff quản lý bài báo/danh mục; Admin quản lý tài khoản/báo cáo; Staff & Lecturer nạp hồ sơ cá nhân qua `GET /api/accounts/{id}`).
+
+| Nhóm API | Tuyến đường (Route) | HTTP Method | Quyền hạn (Role) | Nhãn hiển thị Swagger | Giải thích nghiệp vụ chi tiết |
+| :--- | :--- | :---: | :--- | :--- | :--- |
+| **Tin tức (NewsArticles)** | `/api/NewsArticles`<br>`/odata/NewsArticles` | `GET` | `[AllowAnonymous]` | **`Lấy danh sách bài báo (Public)`** | **GET tổng thể:** Cho phép độc giả khách xem danh sách tin tức active ngoài trang chủ mà không cần đăng nhập. |
+| | `/api/NewsArticles/{id}` | `GET` | `Staff` | **`Lấy chi tiết bài báo (Staff)`** | **GET theo ID:** Quản lý chi tiết bài báo phục vụ thao tác CRUD của Staff (*"Staff role: News article management (Read, Create, Update and Delete actions)"*). |
+| | `/api/NewsArticles/author/{authorId}` | `GET` | `Staff` | **`Lấy bài báo theo tác giả (Staff)`** | **GET theo Author:** Nhân viên xem lại lịch sử các bài viết do chính mình chấp bút (*"View news history created by him/her"*). |
+| | `/api/NewsArticles` | `POST` | `Staff` | **`Tạo mới bài báo (Staff)`** | Nhân viên tạo bài viết tin tức mới và gán các thẻ Tags. |
+| | `/api/NewsArticles/{id}` | `PUT` | `Staff` | **`Cập nhật bài báo (Staff)`** | Nhân viên sửa bài viết và đồng bộ hóa thẻ Tags. |
+| | `/api/NewsArticles/{id}` | `DELETE` | `Staff` | **`Xóa bài báo (Staff)`** | Nhân viên xóa bài viết và dọn sạch các liên kết thẻ phụ. |
+| **Danh mục (Categories)** | `/api/Categories`<br>`/odata/Categories` | `GET` | `[AllowAnonymous]` | **`Lấy danh sách danh mục (Public)`** | **GET tổng thể:** Độc giả khách xem danh mục để lọc bài viết ngoài trang chủ. |
+| | `/api/Categories/{id}` | `GET` | `Staff` | **`Lấy chi tiết danh mục (Staff)`** | **GET theo ID:** Nhân viên xem chi tiết danh mục để nạp vào form chỉnh sửa (*"Staff role: Category management"*). |
+| | `/api/Categories` | `POST` | `Staff` | **`Tạo mới danh mục (Staff)`** | Nhân viên thêm mới danh mục chuyên mục tin tức. |
+| | `/api/Categories/{id}` | `PUT` | `Staff` | **`Cập nhật danh mục (Staff)`** | Nhân viên đổi tên, mô tả, danh mục cha hoặc trạng thái. |
+| | `/api/Categories/{id}` | `DELETE` | `Staff` | **`Xóa danh mục (Staff)`** | Nhân viên xóa danh mục (bị chặn nếu có bài viết). |
+| **Thẻ Tags** | `/api/Tags`<br>`/odata/Tags` | `GET` | `[AllowAnonymous]` | **`Lấy danh sách thẻ Tag (Public)`** | **GET tổng thể:** Khách xem danh sách thẻ hashtag phân loại tin tức. |
+| | `/api/Tags/{id}` | `GET` | `Staff` | **`Lấy chi tiết thẻ Tag (Staff)`** | **GET theo ID:** Nhân viên xem thông tin thẻ Tag (*"Manage news article (includes tags)"*). |
+| | `/api/Tags` | `POST` | `Staff` | **`Tạo mới thẻ Tag (Staff)`** | Nhân viên tạo mới thẻ Tag hashtag. |
+| | `/api/Tags/{id}` | `PUT` | `Staff` | **`Cập nhật thẻ Tag (Staff)`** | Nhân viên cập nhật tên hoặc ghi chú của Tag. |
+| | `/api/Tags/{id}` | `DELETE` | `Staff` | **`Xóa thẻ Tag (Staff)`** | Nhân viên xóa thẻ Tag. |
+| **Tài khoản (Accounts)** | `/api/Accounts`<br>`/odata/Accounts` | `GET` | `Admin` | **`Lấy danh sách tài khoản (Admin)`** | **GET tổng thể:** Danh sách tài khoản người dùng chỉ Admin mới có quyền truy cập (*"Admin role: Account management (CRUD)"*). |
+| | `/api/Accounts/{id}` | `GET` | `Admin, Staff, Lecturer` | **`Lấy thông tin tài khoản (Admin, Staff, Lecturer)`** | **GET theo ID:** Admin quản lý tài khoản; Staff và Giảng viên dùng để nạp thông tin cá nhân trên trang Profile. |
+| | `/api/Accounts` | `POST` | `Admin` | **`Tạo mới tài khoản (Admin)`** | Admin tạo mới tài khoản Staff hoặc Lecturer. |
+| | `/api/Accounts/{id}` | `PUT` | `Admin` | **`Cập nhật tài khoản (Admin)`** | Admin cập nhật thông tin tài khoản, phân quyền Role. |
+| | `/api/Accounts/{id}` | `DELETE` | `Admin` | **`Xóa tài khoản (Admin)`** | Admin xóa tài khoản (bị chặn nếu tài khoản đã từng tạo bài báo). |
+| | `/api/Accounts/profile/{id}` | `PUT` | `Admin, Staff, Lecturer` | **`Cập nhật hồ sơ cá nhân (Admin, Staff, Lecturer)`** | Người dùng tự cập nhật tên, email và đổi mật khẩu của chính mình (*"Manage his/her profile"*). |
+| **Báo cáo (Reports)** | `/api/Reports/statistics` | `GET` | `Admin` | **`Báo cáo thống kê tin tức (Admin)`** | Admin xem báo cáo thống kê số bài viết theo khoảng ngày (*"Admin: Create a report statistic by the period from StartDate to EndDate"*). |
+| **Xác thực (Auth)** | `/api/Auth/login` | `POST` | `[AllowAnonymous]` | **`Đăng nhập hệ thống (Public)`** | Đăng nhập bằng Email & Mật khẩu để nhận JWT Token. |
+| | `/api/Auth/status` | `GET` | `[AllowAnonymous]` | **`Kiểm tra trạng thái xác thực (Public)`** | Kiểm tra thông tin phiên và trạng thái xác thực của Token. |
+
+---
+
+### 5.3. Cơ chế phản hồi lỗi xác thực tập trung (401 Unauthorized & 403 Forbidden)
+Trong `Program.cs`, sự kiện `JwtBearerEvents` được cấu hình để chuẩn hóa thông báo lỗi thân thiện bằng tiếng Việt dưới định dạng JSON:
+- **401 Unauthorized (Chưa xác thực)**:
+  ```json
+  {
+    "statusCode": 401,
+    "status": "CHƯA XÁC THỰC (UNAUTHENTICATED)",
+    "message": "Tài khoản chưa được xác thực hoặc Token không hợp lệ! Vui lòng đăng nhập tại POST /api/Auth/login và dán mã Token vào nút Authorize trên Swagger (lưu ý: chỉ dán chuỗi token, không kèm dấu ngoặc nhọn {} hoặc từ khóa Bearer)."
+  }
+  ```
+- **403 Forbidden (Không có quyền truy cập)**:
+  ```json
+  {
+    "statusCode": 403,
+    "status": "KHÔNG CÓ QUYỀN (FORBIDDEN)",
+    "message": "Tài khoản đã xác thực nhưng không có quyền (Role) phù hợp để truy cập chức năng này."
+  }
+  ```
+
+---
+
+### 5.4. Tự động hóa gán nhãn quyền hạn trên Swagger (AuthorizeRoleOperationFilter)
+Để hỗ trợ việc kiểm thử và thẩm định đồ án trực quan, một lớp filter tùy biến `AuthorizeRoleOperationFilter` (triển khai `IOperationFilter` của Swashbuckle) được cấu hình:
+1. Đọc metadata của từng action method (`EndpointMetadata`): rà soát các attribute `[Authorize]`, danh sách Roles và `[AllowAnonymous]`.
+2. Tự động bóc tách và định dạng danh sách Role (ví dụ: `(Public)`, `(Staff)`, `(Admin)`, `(Admin, Staff, Lecturer)`).
+3. Tự động ghép tên thân thiện tiếng Việt cùng nhãn Role vào `operation.Summary` và `operation.Description`. 
+
+Nhờ cơ chế này, ngay trên thanh màu của từng API trong giao diện Swagger UI, giảng viên và người kiểm thử có thể lập tức nhận biết quyền thực thi mà không cần tra cứu tài liệu bên ngoài.
+
+---
+
+### 5.5. Các ràng buộc nghiệp vụ chặt chẽ (Business Constraints):
 1. **Kiểm tra trùng lặp khóa chính & Email**: Khi thêm tài khoản, hệ thống kiểm tra cả trùng `AccountId` lẫn trùng `AccountEmail`.
 2. **Bảo vệ toàn vẹn dữ liệu khi xóa tài khoản**: Cấm xóa tài khoản nếu tài khoản đó đã từng là tác giả đứng tên bất kỳ bài viết nào.
 3. **Bảo vệ toàn vẹn dữ liệu khi xóa danh mục**: Cấm xóa danh mục nếu danh mục đó đang chứa bài viết hoặc có danh mục con trực thuộc.

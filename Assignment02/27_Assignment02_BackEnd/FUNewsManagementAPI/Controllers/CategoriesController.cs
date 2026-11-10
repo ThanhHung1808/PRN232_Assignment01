@@ -40,7 +40,7 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        [AllowAnonymous]
+        [Authorize(Roles = "Staff")]
         public async Task<ActionResult<CategoryResponseDto>> GetCategory(short id)
         {
             var c = await _categoryRepository.GetCategoryByIdAsync(id);

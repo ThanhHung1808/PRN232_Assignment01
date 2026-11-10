@@ -5,12 +5,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
+using System.Security.Claims;
 
 namespace FUNewsManagementAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
     public class AccountsController : ODataController
     {
         private readonly ISystemAccountRepository _accountRepository;
@@ -23,6 +23,7 @@ namespace FUNewsManagementAPI.Controllers
         [HttpGet]
         [HttpGet("/odata/Accounts")]
         [EnableQuery]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<AccountResponseDto>>> GetAccounts()
         {
             var accounts = await _accountRepository.GetAccountsAsync();
@@ -50,6 +51,7 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateAccount([FromBody] AccountCreateUpdateDto dto)
         {
             if (!ModelState.IsValid)
@@ -82,6 +84,7 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateAccount(short id, [FromBody] AccountCreateUpdateDto dto)
         {
             if (!ModelState.IsValid)
@@ -118,6 +121,7 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteAccount(short id)
         {
             try

@@ -1,6 +1,7 @@
 using FUNewsManagementAPI.DTOs;
 using FUNewsManagementAPI.Models;
 using FUNewsManagementAPI.Repositories.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
@@ -19,7 +20,9 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpGet]
+        [HttpGet("/odata/Categories")]
         [EnableQuery]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<CategoryResponseDto>>> GetCategories([FromQuery] bool? activeOnly)
         {
             var categories = await _categoryRepository.GetCategoriesAsync(activeOnly);
@@ -37,6 +40,7 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<CategoryResponseDto>> GetCategory(short id)
         {
             var c = await _categoryRepository.GetCategoryByIdAsync(id);
@@ -59,6 +63,7 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Staff")]
         public async Task<IActionResult> CreateCategory([FromBody] CategoryCreateUpdateDto dto)
         {
             if (!ModelState.IsValid)
@@ -86,6 +91,7 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Staff")]
         public async Task<IActionResult> UpdateCategory(short id, [FromBody] CategoryCreateUpdateDto dto)
         {
             if (!ModelState.IsValid)
@@ -118,6 +124,7 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Staff")]
         public async Task<IActionResult> DeleteCategory(short id)
         {
             try

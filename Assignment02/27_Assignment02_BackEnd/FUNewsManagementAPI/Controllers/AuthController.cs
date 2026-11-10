@@ -1,7 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Azure.Messaging;
 using FUNewsManagementAPI.DTOs;
 using FUNewsManagementAPI.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -38,9 +37,9 @@ namespace FUNewsManagementAPI.Controllers
             {
                 return Ok(new
                 {
-                    //IsAuthenticated = true,
-                    //Status = "ĐÃ XÁC THỰC (AUTHENTICATED)",
-                    //Message = "Tài khoản của bạn đã được xác thực thành công trên Swagger!",
+                    IsAuthenticated = true,
+                    Status = "ĐÃ XÁC THỰC (AUTHENTICATED)",
+                    Message = "Tài khoản của bạn đã được xác thực thành công trên Swagger!",
                     AccountId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
                     AccountName = User.FindFirst(ClaimTypes.Name)?.Value,
                     AccountEmail = User.FindFirst(ClaimTypes.Email)?.Value,

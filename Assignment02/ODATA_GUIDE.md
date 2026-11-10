@@ -53,7 +53,7 @@
 ```http
 GET https://localhost:7000/odata/NewsArticles
 ```
-hoặc:
+hoặc: 
 ```http
 GET https://localhost:7000/api/NewsArticles
 ```
